@@ -1,5 +1,10 @@
+modules = ["nodejs-24"]
 [nix]
 channel = "stable-25_05"
 
 [agent]
 expertMode = true
+
+[[ports]]
+localPort = 19209
+externalPort = 80

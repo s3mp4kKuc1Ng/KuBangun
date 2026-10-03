@@ -1,0 +1,14 @@
+import type { Project } from './types';
+const now = new Date().toISOString();
+const base = { revision: 1, createdAt: now, updatedAt: now, status: 'draft' as const, archived: false, example: true, documents: [], reviewNotes: [] };
+export const seedProjects = (): Project[] => [
+  { ...base, id: 'contoh-rumah-tipe-45', name: 'CONTOH: Rumah Tipe 45 Perumahan Fiktif', mode: 'new', province: 'Jawa Barat', city: 'Kab. Bandung', floors: 1, landArea: 90, footprintArea: 45, totalArea: 45, structure: 'Dinding pasangan dengan kolom praktis (rencana)', material: 'Tidak diketahui', description: 'Proyek contoh fiktif untuk mencoba alur. Data bukan milik siapa pun dan tidak terverifikasi.',
+    rooms: [{ id: 'r1', name: 'Ruang tamu', floor: 1, length: 3.5, width: 3, height: 2.8, source: 'manual', confirmed: true }, { id: 'r2', name: 'Kamar utama', floor: 1, length: 3, width: 3, height: 2.8, source: 'manual', confirmed: false }],
+    components: [{ id: 'c1', type: 'Pondasi', name: 'Pondasi menerus (rencana)', dimensions: 'Kedalaman belum diketahui', material: 'Tidak diketahui', state: 'proposed', source: 'manual', confirmed: false }], observations: [], changes: [] },
+  { ...base, id: 'contoh-renovasi-ruko', name: 'CONTOH: Renovasi Rumah Dua Lantai (Fiktif)', mode: 'renovation', province: 'Jawa Timur', city: 'Kota Malang', floors: 2, landArea: 120, footprintArea: 70, totalArea: 130, structure: 'Tidak diketahui', material: 'Batu bata, material rangka belum diketahui', description: 'Proyek contoh fiktif: pemilik ingin membuka dinding antara dapur dan ruang makan. Belum ada evaluasi profesional.',
+    rooms: [{ id: 'r1', name: 'Dapur', floor: 1, length: 3, width: 2.5, height: 3, source: 'manual', confirmed: true }],
+    components: [{ id: 'c1', type: 'Dinding', name: 'Dinding dapur-ruang makan', dimensions: 'P 3,0 m; T 3,0 m; tebal belum diukur', material: 'Tidak diketahui', state: 'existing', source: 'manual', confirmed: false }],
+    observations: [{ id: 'o1', location: 'Dinding dapur sisi timur', category: 'Retak', description: 'Retak rambut vertikal dekat kusen jendela, diukur dengan kartu pembanding.', date: now.slice(0, 10), crackWidth: 0.4 }],
+    changes: [{ id: 'ch1', type: 'Hapus/ubah dinding', description: 'Membuka sebagian dinding untuk bukaan lebar. Peran struktural belum diketahui.', componentId: 'c1', dimensions: 'Lebar bukaan usulan 2,0 m' }] },
+  { ...base, id: 'contoh-tambah-lantai', name: 'CONTOH: Rencana Tambah Lantai Rumah (Fiktif)', mode: 'renovation', province: 'DI Yogyakarta', city: 'Kab. Sleman', floors: 1, landArea: null, footprintArea: 60, totalArea: null, structure: '', material: '', description: 'Proyek contoh fiktif dengan data sangat sedikit, untuk melihat tampilan kesiapan data.', rooms: [], components: [], observations: [], changes: [] },
+];

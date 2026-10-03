@@ -1,0 +1,15 @@
+export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+export const fmtDate = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '-' : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); };
+export const fmtDateTime = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '-' : d.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+export const fmtSize = (n: number) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+export const fmtNum = (n: number | null | undefined, unit = '') => (n == null ? 'Belum diisi' : n.toLocaleString('id-ID') + (unit ? ' ' + unit : ''));
+export const roomArea = (r: { length: number; width: number }) => Math.round(r.length * r.width * 100) / 100;
+export const modeLabel = (m: string) => (m === 'new' ? 'Bangun Baru' : 'Renovasi');
+export const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(' ');
+export const numOrNull = (v: string) => { if (v.trim() === '') return null; const n = Number(v.replace(',', '.')); return isFinite(n) ? n : null; };
+export const MAX_FILE = 8 * 1024 * 1024;
+export const ACCEPT = ['application/pdf', 'image/jpeg', 'image/png'];
+export const COMPONENT_TYPES = ['Dinding', 'Kolom', 'Balok', 'Pelat lantai', 'Atap', 'Pondasi', 'Bukaan (pintu/jendela)', 'Lainnya'];
+export const OBS_CATEGORIES = ['Retak', 'Deformasi', 'Korosi', 'Lembap/bocor', 'Pelapukan permukaan', 'Indikasi penurunan tanah', 'Sambungan', 'Lainnya'];
+export const CHANGE_TYPES = ['Tambah/hapus bukaan', 'Hapus/ubah dinding', 'Perluas denah', 'Tambah lantai', 'Ubah atap', 'Ubah fungsi ruang', 'Tambah beban/peralatan', 'Perbaikan komponen', 'Lainnya'];
+export const PROVINCES = ['Aceh','Sumatera Utara','Sumatera Barat','Riau','Kepulauan Riau','Jambi','Sumatera Selatan','Bengkulu','Lampung','Bangka Belitung','DKI Jakarta','Banten','Jawa Barat','Jawa Tengah','DI Yogyakarta','Jawa Timur','Bali','Nusa Tenggara Barat','Nusa Tenggara Timur','Kalimantan Barat','Kalimantan Tengah','Kalimantan Selatan','Kalimantan Timur','Kalimantan Utara','Sulawesi Utara','Gorontalo','Sulawesi Tengah','Sulawesi Barat','Sulawesi Selatan','Sulawesi Tenggara','Maluku','Maluku Utara','Papua','Papua Barat'];
