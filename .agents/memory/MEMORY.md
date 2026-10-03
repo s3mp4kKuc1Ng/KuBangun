@@ -1,0 +1,1 @@
+- [Renovation comparisons](renovation-comparisons.md) — classify and pair measurements explicitly; legacy rooms remain unclassified and missing counterparts are not zero.

@@ -25,7 +25,7 @@ export function areaSketchExport(room: SketchRoom) {
     ...(Math.min(g.w, g.h) < 1 ? ['Sisi sangat tipis; proporsi asli dipertahankan. Baca ukuran pada label.'] : []),
     'Sketsa persegi panjang otomatis dari ukuran isian; satuan meter (m).',
     'Skala menyesuaikan tampilan; bukan skala cetak atau skala arsitektur tetap.',
-    'Tidak menunjukkan letak antarruang, bukaan, atau status eksisting/usulan.',
+    'Tidak menunjukkan letak antarruang atau bukaan; label eksisting/usulan diisi pengguna.',
     'Bukan verifikasi profesional, gambar kerja, atau penilaian kecukupan struktur.',
   ];
   const height = headerHeight + 480 + 30 + notes.length * 24;

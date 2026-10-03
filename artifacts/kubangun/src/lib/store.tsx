@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Project, Settings } from './types';
 import { seedProjects } from './seed';
 import { delBlob } from './idb';
+import { roomState } from './room-comparison';
 
 const PK = 'kubangun.projects.v1';
 const SK = 'kubangun.settings.v1';
@@ -25,7 +26,8 @@ function load(): { projects: Project[]; settings: Settings; err: string | null }
     if (raw === null) return { projects: seedProjects(), settings, err: null };
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) throw new Error('Format data tidak dikenali');
-    return { projects: parsed, settings, err: null };
+    // Preserve all old dimensions and evidence; no mode-based state inference.
+    return { projects: parsed.map((p: Project) => ({ ...p, rooms: p.rooms.map((r) => ({ ...r, state: roomState(r) })) })), settings, err: null };
   } catch (e) {
     return { projects: seedProjects(), settings: dflt, err: 'Data lokal tidak dapat dibaca (' + (e as Error).message + '). Contoh proyek dimuat; data lama tidak ditimpa sampai Anda menyimpan perubahan.' };
   }

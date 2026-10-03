@@ -1,4 +1,5 @@
 import type { Project } from './types';
+import { roomDifference, roomPairs, roomState } from './room-comparison';
 export type RState = 'ok' | 'unconfirmed' | 'missing' | 'unknown';
 export interface RItem { key: string; label: string; state: RState; note: string; tab: string }
 const unk = (s: string) => !s.trim() || /^tidak diketahui$/i.test(s.trim());
@@ -17,6 +18,12 @@ export function readiness(p: Project): RItem[] {
   if (p.components.length) out.push({ key: 'compmat', label: 'Material komponen', state: unkMat ? 'unknown' : 'ok', note: unkMat ? `${unkMat} komponen bermaterial tidak diketahui.` : 'Semua komponen memiliki deskripsi material.', tab: 'ruang' });
   out.push({ key: 'docs', label: 'Gambar / dokumen', state: p.documents.length === 0 ? 'missing' : 'ok', note: p.documents.length === 0 ? 'Belum ada berkas diunggah. Gambar rencana tidak membuktikan kondisi terbangun.' : `${p.documents.length} berkas tersimpan lokal. Ekstraksi otomatis dinonaktifkan.`, tab: 'dokumen' });
   if (p.mode === 'renovation') {
+    const unknownRooms = p.rooms.filter((r) => roomState(r) === 'unknown').length;
+    const incompletePairs = roomPairs(p.rooms).filter((pair) => !roomDifference(pair.existing, pair.proposed)).length;
+    out.push({ key: 'roomstates', label: 'Keadaan ruang eksisting/usulan', state: !p.rooms.length ? 'missing' : unknownRooms ? 'unknown' : 'ok',
+      note: unknownRooms ? `${unknownRooms} ruang belum ditentukan keadaannya; tidak dianggap eksisting atau usulan.` : p.rooms.length ? 'Label keadaan diisi pengguna, bukan verifikasi kondisi terbangun.' : 'Belum ada ruang dicatat.', tab: 'ruang' });
+    out.push({ key: 'roompairs', label: 'Pasangan ukuran ruang', state: !roomPairs(p.rooms).length ? 'missing' : incompletePairs ? 'missing' : 'ok',
+      note: incompletePairs ? `${incompletePairs} pasangan belum lengkap/valid; selisih luas tidak tersedia. Ruang baru atau dihapus boleh tetap tidak berpasangan.` : roomPairs(p.rooms).length ? 'Selisih luas geometris dari pasangan eksplisit, bukan penilaian struktur.' : 'Belum ada pasangan ukuran eksisting dan usulan.', tab: 'ruang' });
     out.push({ key: 'obs', label: 'Observasi kondisi eksisting', state: p.observations.length === 0 ? 'missing' : 'ok', note: p.observations.length === 0 ? 'Belum ada observasi dicatat.' : `${p.observations.length} observasi tercatat; tanpa penafsiran penyebab.`, tab: 'observasi' });
     out.push({ key: 'chg', label: 'Rencana perubahan', state: p.changes.length === 0 ? 'missing' : 'ok', note: p.changes.length === 0 ? 'Belum ada perubahan diusulkan.' : `${p.changes.length} perubahan diusulkan. Peran struktural elemen perlu evaluasi profesional.`, tab: 'perubahan' });
   }

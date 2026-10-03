@@ -4,6 +4,7 @@ import { Badge, Btn, Confirm, Empty, Field, Modal, inputCls } from '@/components
 import { CHANGE_TYPES, OBS_CATEGORIES, fmtDate, numOrNull, uid } from '@/lib/format';
 import type { Change, Observation } from '@/lib/types';
 import type { WP } from './common';
+import { RenovationRoomComparison } from '@/components/renovation-room-comparison';
 
 function ObsForm({ p, init, onSave, onClose }: { p: WP['p']; init: Observation | null; onSave: (o: Observation) => void; onClose: () => void }) {
   const [f, setF] = useState({ location: init?.location ?? '', category: init?.category ?? OBS_CATEGORIES[0], description: init?.description ?? '', date: init?.date ?? new Date().toISOString().slice(0, 10), crack: init?.crackWidth != null ? String(init.crackWidth) : '', photo: init?.photoDocumentId ?? '' });
@@ -57,6 +58,7 @@ export function Changes({ p, up }: WP) {
   const [del, setDel] = useState<Change | null>(null);
   const comp = (id?: string) => p.components.find((c) => c.id === id);
   return <div className="space-y-4">
+    <RenovationRoomComparison rooms={p.rooms} testId="changes-room-comparison" />
     <div className="flex justify-between items-center gap-3"><p className="text-sm text-muted-foreground max-w-xl">Perubahan usulan. Pembongkaran, tambah lantai, perubahan beban, dan elemen yang peran strukturalnya belum jelas membutuhkan evaluasi profesional; aplikasi ini tidak memberi izin untuk melanjutkan.</p><Btn v="primary" sm onClick={() => setM('new')} data-testid="button-add-change"><Plus size={14} />Tambah perubahan</Btn></div>
     {p.changes.length === 0 ? <Empty title="Belum ada perubahan usulan" body="Tambahkan rencana seperti membuka dinding atau menambah lantai, lengkap dengan komponen terdampak." action={<Btn onClick={() => setM('new')}>Tambah perubahan</Btn>} /> :
       <ul className="space-y-2">{p.changes.map((c) => { const k = comp(c.componentId); return <li key={c.id} className="bg-card border border-card-border p-4" data-testid={`card-chg-${c.id}`}>
