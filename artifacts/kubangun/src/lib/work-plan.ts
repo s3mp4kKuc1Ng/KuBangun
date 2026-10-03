@@ -1,3 +1,4 @@
+import { getLocale } from './i18n/language';
 import type { Project, WorkPlan, WorkItem, Material, QuantityUnit, WorkTemplate, WorkUpdate } from './types';
 import { uid } from './format';
 import { fixRoomLinks } from './room-comparison';
@@ -89,7 +90,7 @@ export function calculateMaterial(q: number, workUnit: QuantityUnit, m: Material
   if (!nonnegative(procurement) || (integer && !Number.isSafeInteger(procurement))) throw new Error('Jumlah pengadaan melampaui batas angka yang aman.');
   return { raw, procurement, unit: m.unit, rule: `${rule}${m.unit === 'dus' && boxKnown ? `; isi dus: ${m.boxContents} ${m.boxContentsUnit}/dus` : m.unit === 'dus' && positive(m.factor) ? `; cakupan: ${m.factor} ${m.basisUnit}/dus` : ''}${step ? `; dibulatkan ke kelipatan ${step} ${m.unit}` : '; massa/volume/panjang tidak dibulatkan (tampilan 3 desimal)'}${overridden ? `; override ${requirement} ${m.unit}: ${m.overrideReason}` : ''}`, overridden };
 }
-export const displayQuantity = (q: number) => q.toLocaleString('id-ID', { maximumFractionDigits: 3 });
+export const displayQuantity = (q: number) => q.toLocaleString(getLocale(), { maximumFractionDigits: 3 });
 export function planFingerprint(p: Project): string {
   const plan = getWorkPlan(p);
   // Ordering and presentation do not change engineering quantities.

@@ -39,8 +39,8 @@ export default function ProjectPage() {
       <div className="flex flex-wrap justify-between gap-3 mb-5 no-print">
         <div>
           <div className="flex gap-2 flex-wrap mb-2"><Badge tone={reno ? 'accent' : 'ink'}>{modeLabel(p.mode)}</Badge><Badge>Revisi {p.revision}</Badge><Badge tone={p.status === 'draft' ? 'muted' : 'warn'}>{p.status === 'draft' ? 'Draf' : 'Tinjauan diminta (simulasi, tidak terkirim)'}</Badge>{p.example && <Badge tone="warn">Contoh fiktif</Badge>}{p.archived && <Badge>Arsip</Badge>}</div>
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold" data-testid="text-project-name">{p.name}</h1>
-          <p className="text-sm text-muted-foreground">{p.city}, {p.province}</p>
+          <h1 className="font-display text-3xl md:text-4xl font-extrabold" data-testid="text-project-name" data-i18n="off">{p.name}</h1>
+          <p className="text-sm text-muted-foreground" data-i18n="off">{p.city}, {p.province}</p>
         </div>
         <div className="flex gap-2 items-start">
           <Btn sm onClick={() => (p.archived ? updateProject(p.id, (x) => ({ ...x, archived: false }), false) : setArc(true))} data-testid="button-archive-project"><Archive size={14} />{p.archived ? 'Pulihkan' : 'Arsipkan'}</Btn>
@@ -63,7 +63,7 @@ export default function ProjectPage() {
         {cur === 'laporan' && <div className="space-y-4"><div className="flex gap-2 flex-wrap no-print"><ReportActions p={p} /></div><ReportView p={p} /></div>}
       </div>
       {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body="Proyek dipindah ke arsip dan dapat dipulihkan kapan saja." onClose={() => setArc(false)} onOk={async () => { if (await updateProject(p.id, (x) => ({ ...x, archived: true }), false)) { toast({ title: 'Proyek diarsipkan' }); nav('/projects'); } }} />}
-      {del && <Confirm title="Hapus proyek permanen?" label="Hapus permanen" body={<><b>{p.name}</b> dan {p.documents.length} berkas di IndexedDB akan dihapus dari perangkat ini selamanya.</>} onClose={() => setDel(false)} onOk={async () => { const e = await deleteProject(p.id); toast(e ? { title: 'Dihapus dengan catatan', description: e, variant: 'destructive' } : { title: 'Proyek dihapus' }); nav('/projects'); }} />}
+      {del && <Confirm title="Hapus proyek permanen?" label="Hapus permanen" body={<><b><span data-i18n="off">{p.name}</span></b> dan {p.documents.length} berkas di IndexedDB akan dihapus dari perangkat ini selamanya.</>} onClose={() => setDel(false)} onOk={async () => { const e = await deleteProject(p.id); toast(e ? { title: 'Dihapus dengan catatan', description: e, variant: 'destructive' } : { title: 'Proyek dihapus' }); nav('/projects'); }} />}
     </div>
   );
 }

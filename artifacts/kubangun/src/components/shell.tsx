@@ -4,6 +4,7 @@ import { LayoutDashboard, FolderKanban, FileText, Settings, HardDrive, AlertTria
 import { useStore } from '@/lib/store';
 import { cx } from '@/lib/format';
 import { Btn } from './kit';
+import { LanguageSwitch } from './language-switch';
 
 const NAV = [
   { href: '/', label: 'Beranda', icon: LayoutDashboard },
@@ -34,6 +35,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </Link>
       <Link href="/projects/new" onClick={() => setOpen(false)} data-testid="link-new-project" className="flex items-center justify-center gap-2 bg-accent text-accent-foreground font-semibold text-sm py-2.5 rounded-sm hover:brightness-95"><Plus size={16} />Buat Proyek</Link>
       {nav}
+      <LanguageSwitch />
       <div className="mt-auto text-xs space-y-3">
         <div className="border border-sidebar-border p-3 rounded-sm leading-relaxed" data-testid="notice-local-only"><div className="flex items-center gap-2 font-semibold text-sidebar-accent-foreground mb-1"><HardDrive size={14} />Hanya di peramban ini</div>Data tersimpan di localStorage dan berkas di IndexedDB perangkat Anda. Tidak ada yang dikirim ke server. Menghapus data situs akan menghapus semuanya.</div>
         <div className="opacity-70 font-mono">Tampilan: {settings.role === 'pemilik' ? 'Pemilik rumah' : 'Profesional'}{settings.name && ` / ${settings.name}`}</div>
@@ -45,6 +47,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <aside className="hidden md:block w-64 shrink-0 bg-sidebar text-sidebar-foreground sticky top-0 h-[100dvh] no-print">{side}</aside>
       <div className="md:hidden flex items-center justify-between bg-sidebar text-sidebar-foreground px-4 py-3 no-print">
         <span className="font-display text-xl font-extrabold text-sidebar-accent-foreground">KuBangun</span>
+        <LanguageSwitch compact />
         <button aria-label="Menu" onClick={() => setOpen(true)} data-testid="button-menu"><Menu /></button>
       </div>
       {open && <div className="fixed inset-0 z-40 md:hidden no-print"><div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} /><div className="absolute left-0 top-0 bottom-0 w-72 bg-sidebar text-sidebar-foreground rise overflow-y-auto"><button className="absolute right-3 top-3" onClick={() => setOpen(false)} aria-label="Tutup"><X /></button>{side}</div></div>}

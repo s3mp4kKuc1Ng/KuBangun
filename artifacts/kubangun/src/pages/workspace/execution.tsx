@@ -1,3 +1,4 @@
+import { getLocale } from '@/lib/i18n/language';
 import { useState } from 'react';
 import type { Project, WorkItem, WorkStatus, WorkUpdate } from '@/lib/types';
 import { Badge, Btn, Empty, Field, Modal, inputCls } from '@/components/kit';
@@ -6,7 +7,7 @@ import { STATUS_LABEL, baselineOutdated, displayQuantity, getWorkPlan, latestUpd
 import { ErrorBox, ReasonDialog, Sel, useSave } from './work-forms';
 
 export const parentPct = (plan: ReturnType<typeof getWorkPlan>, ids: string[]) => ids.length ? pct(meanProgress(plan, ids)) : 'Tidak ada pekerjaan';
-const pct = (n: number | null) => n === null ? 'Belum ada' : `${n.toLocaleString('id-ID', { maximumFractionDigits: 1 })}%`;
+const pct = (n: number | null) => n === null ? 'Belum ada' : `${n.toLocaleString(getLocale(), { maximumFractionDigits: 1 })}%`;
 const statusTone = (s: WorkStatus) => s === 'completed' ? 'ok' : s === 'blocked' ? 'bad' : s === 'in-progress' ? 'accent' : 'muted';
 
 export function ProgressForm({ p, workId, onClose }: { p: Project; workId: string; onClose: () => void }) {
@@ -46,8 +47,8 @@ export function ProgressForm({ p, workId, onClose }: { p: Project; workId: strin
 
 export function UpdateRow({ u, p }: { u: WorkUpdate; p: Project }) {
   const plan = getWorkPlan(p); const bl = plan.baselines.find((b) => b.id === u.baselineId); const bi = bl?.items.find((i) => i.work.id === u.workId);
-  return <li className="border border-border bg-card p-2 text-sm"><div className="flex flex-wrap gap-2 items-center"><b>{fmtDate(u.date)}</b><Badge tone={statusTone(u.status)}>{STATUS_LABEL[u.status]}</Badge><span className="font-mono text-xs">{displayQuantity(u.completedQuantity)} {bi?.work.unit}</span>{u.responsible && <span className="text-muted-foreground">oleh {u.responsible}</span>}<span className="text-xs text-muted-foreground ml-auto">dicatat {fmtDateTime(u.createdAt)}</span></div>
-    <p className="mt-1">{u.note}</p>
+  return <li className="border border-border bg-card p-2 text-sm"><div className="flex flex-wrap gap-2 items-center"><b>{fmtDate(u.date)}</b><Badge tone={statusTone(u.status)}>{STATUS_LABEL[u.status]}</Badge><span className="font-mono text-xs">{displayQuantity(u.completedQuantity)} {bi?.work.unit}</span>{u.responsible && <span className="text-muted-foreground">oleh <span data-i18n="off">{u.responsible}</span></span>}<span className="text-xs text-muted-foreground ml-auto">dicatat {fmtDateTime(u.createdAt)}</span></div>
+    <p className="mt-1"><span data-i18n="off">{u.note}</span></p>
     {bi && bi.materials.length > 0 && <p className="text-xs text-muted-foreground mt-1">Material: {bi.materials.map((m) => { const x = u.usage.find((y) => y.materialId === m.material.id); return `${m.material.name} ${x ? displayQuantity(x.quantity) + ' ' + m.material.unit : 'belum dicatat'}`; }).join('; ')}</p>}</li>;
 }
 
@@ -77,14 +78,14 @@ export function ExecutionPanel({ p }: { p: Project }) {
     {outdated && <div role="alert" data-testid="warn-baseline-outdated" className="border border-[hsl(38,70%,40%)] bg-[hsl(45,85%,88%)] px-3 py-2 text-sm">Baseline kedaluwarsa: rencana saat ini berbeda dari baseline terakhir. Pencatatan progres diblokir sampai Anda menyimpan baseline baru dengan alasan.</div>}
     <div className="border border-border bg-card p-3 text-sm"><b>Rata-rata progres pekerjaan (bobot sama): {pct(meanProgress(plan, all))}</b>
       <p className="text-xs text-muted-foreground">Setiap pekerjaan berbobot sama. Ini bukan bobot teknik atau biaya, dan bukan penilaian mutu. Kelompok tanpa pekerjaan tidak memiliki progres.</p>
-      <ul className="mt-2 grid sm:grid-cols-2 gap-1 text-xs">{plan.groups.map((g) => { const ids = plan.items.filter((i) => i.groupId === g.id).map((i) => i.id); return <li key={g.id} className="border-b border-border py-0.5 sm:col-span-2"><div className="flex justify-between"><b>{g.name} (rata-rata bobot sama)</b><span className="font-mono">{parentPct(plan, ids)}</span></div>{orderedRooms(p, g.id).map((r) => <div key={r.id} className="flex justify-between pl-4 text-muted-foreground"><span>{r.name} (rata-rata bobot sama)</span><span className="font-mono">{parentPct(plan, plan.items.filter((i) => i.roomId === r.id).map((i) => i.id))}</span></div>)}</li>; })}</ul></div>
+      <ul className="mt-2 grid sm:grid-cols-2 gap-1 text-xs">{plan.groups.map((g) => { const ids = plan.items.filter((i) => i.groupId === g.id).map((i) => i.id); return <li key={g.id} className="border-b border-border py-0.5 sm:col-span-2"><div className="flex justify-between"><b><span data-i18n="off">{g.name}</span> (rata-rata bobot sama)</b><span className="font-mono">{parentPct(plan, ids)}</span></div>{orderedRooms(p, g.id).map((r) => <div key={r.id} className="flex justify-between pl-4 text-muted-foreground"><span><span data-i18n="off">{r.name}</span> (rata-rata bobot sama)</span><span className="font-mono">{parentPct(plan, plan.items.filter((i) => i.roomId === r.id).map((i) => i.id))}</span></div>)}</li>; })}</ul></div>
     <ErrorBox msg={err} />
     <div className="space-y-2">{base.items.map((bi) => {
       const cur = plan.items.find((w) => w.id === bi.work.id); const lu = latestUpdate(plan, bi.work.id);
       let curQ: string; try { curQ = cur ? `${displayQuantity(workQuantity(p, cur).quantity)} ${cur.unit}` : 'dihapus'; } catch (e) { curQ = 'tidak valid: ' + (e as Error).message; }
       const over = lu && lu.completedQuantity > bi.quantity; const prg = workProgress(plan, bi.work.id);
       return <div key={bi.work.id} className="border border-border bg-card p-3 text-sm" data-testid={`row-progress-${bi.work.id}`}>
-        <div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs">{cur ? workNumber(p, cur) : '—'}</span><b>{bi.work.name}</b>{lu ? <Badge tone={statusTone(lu.status)}>{STATUS_LABEL[lu.status]}</Badge> : <Badge>Belum ada entri</Badge>}{over && <Badge tone="warn">Melebihi baseline</Badge>}<span className="ml-auto font-mono">{pct(prg)}</span></div>
+        <div className="flex flex-wrap items-center gap-2"><span className="font-mono text-xs">{cur ? workNumber(p, cur) : '—'}</span><b><span data-i18n="off">{bi.work.name}</span></b>{lu ? <Badge tone={statusTone(lu.status)}>{STATUS_LABEL[lu.status]}</Badge> : <Badge>Belum ada entri</Badge>}{over && <Badge tone="warn">Melebihi baseline</Badge>}<span className="ml-auto font-mono">{pct(prg)}</span></div>
         <div className="h-1.5 bg-muted mt-2"><div className="h-full bg-accent" style={{ width: `${Math.min(100, Math.max(0, prg ?? 0))}%` }} /></div>
         <p className="text-xs text-muted-foreground mt-1">Baseline {displayQuantity(bi.quantity)} {bi.work.unit} · rencana saat ini {curQ} · selesai {lu ? displayQuantity(lu.completedQuantity) : '0'} {bi.work.unit}</p>
         {lu && lu.baselineId !== base.id && <p className="text-xs mt-1 border-l-2 border-[hsl(38,70%,40%)] pl-2">Status "{STATUS_LABEL[lu.status]}" tersimpan pada baseline sebelumnya. Persentase di atas dihitung terhadap baseline terkini; status lama tidak membuktikan rencana baru selesai. Catat entri baru untuk menegaskan.</p>}
@@ -92,7 +93,7 @@ export function ExecutionPanel({ p }: { p: Project }) {
         {bi.materials.length > 0 && <p className="text-xs text-muted-foreground mt-1">Material: {bi.materials.map((m) => { const x = lu?.usage.find((y) => y.materialId === m.material.id); const ov = x && x.quantity > m.procurement; return `${m.material.name} ${x ? displayQuantity(x.quantity) : 'belum dicatat'} / ${displayQuantity(m.procurement)} ${m.material.unit}${ov ? ' (melebihi baseline)' : ''}`; }).join('; ')}</p>}
         <div className="flex gap-2 mt-2 no-print"><Btn sm v="primary" disabled={!cur} onClick={() => { setErr(null); setProg(bi.work.id); }} data-testid={`button-progress-${bi.work.id}`}>Catat progres / koreksi</Btn><Btn sm onClick={() => setHist(bi.work.id)}>Riwayat ({plan.updates.filter((u) => u.workId === bi.work.id).length})</Btn></div>
       </div>; })}</div>
-    <details className="border border-border bg-card p-3 text-sm"><summary className="cursor-pointer font-medium">Riwayat baseline ({plan.baselines.length})</summary><ol className="mt-2 space-y-2">{[...plan.baselines].reverse().map((b, i) => <li key={b.id} className="border-t border-border pt-2"><b>{fmtDateTime(b.createdAt)}</b> {i === 0 && <Badge tone="ink">Terakhir</Badge>}<p>Alasan: {b.reason}</p><p className="text-xs text-muted-foreground">{b.items.map((x) => `${x.work.name} ${displayQuantity(x.quantity)} ${x.work.unit}`).join('; ') || 'Tidak ada pekerjaan'}</p></li>)}</ol></details>
+    <details className="border border-border bg-card p-3 text-sm"><summary className="cursor-pointer font-medium">Riwayat baseline ({plan.baselines.length})</summary><ol className="mt-2 space-y-2">{[...plan.baselines].reverse().map((b, i) => <li key={b.id} className="border-t border-border pt-2"><b>{fmtDateTime(b.createdAt)}</b> {i === 0 && <Badge tone="ink">Terakhir</Badge>}<p>Alasan: <span data-i18n="off">{b.reason}</span></p><p className="text-xs text-muted-foreground">{b.items.map((x) => `${x.work.name} ${displayQuantity(x.quantity)} ${x.work.unit}`).join('; ') || 'Tidak ada pekerjaan'}</p></li>)}</ol></details>
     {dlg === 'rebase' && <ReasonDialog title="Baseline baru" label="Alasan perubahan baseline (wajib)" cta="Simpan baseline" body={<p>Baseline lama tetap tersimpan. Progres sebelumnya tidak diubah.</p>} onClose={() => setDlg(null)} onSubmit={(r) => save((x) => startExecution(x, r))} />}
     {prog && <ProgressForm p={p} workId={prog} onClose={() => setProg(null)} />}
     {hist && (() => { const w = base.items.find((i) => i.work.id === hist)?.work; return w ? <History p={p} work={w} onClose={() => setHist(null)} /> : null; })()}

@@ -77,7 +77,7 @@ export function Documents({ p, up }: WP) {
   return (
     <div className="space-y-5">
       <input ref={restoreRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" data-testid="input-supply-document" onChange={(e) => void supply(e.target.files?.[0])} />
-      {restore && <p className="text-sm bg-muted p-3">Pasok berkas asli: <b>{restore.name}</b> ({fmtSize(restore.size)}). Metadata dicocokkan; isi bukan verifikasi profesional.</p>}
+      {restore && <p className="text-sm bg-muted p-3">Pasok berkas asli: <b><span data-i18n="off">{restore.name}</span></b> ({fmtSize(restore.size)}). Metadata dicocokkan; isi bukan verifikasi profesional.</p>}
       <div className="bg-card border border-card-border p-4 flex flex-wrap gap-4 items-end">
         <div><div className="text-xs font-mono uppercase text-muted-foreground mb-1">Keadaan yang digambarkan</div><select data-testid="select-doc-state" className={inputCls} value={state} onChange={(e) => setState(e.target.value as DocMeta['sourceState'])}><option value="existing">Eksisting</option><option value="proposed">Usulan</option><option value="unknown">Tidak diketahui</option></select></div>
         <input ref={ref} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="hidden" onChange={(e) => onFiles(e.target.files)} data-testid="input-file" />
@@ -89,12 +89,12 @@ export function Documents({ p, up }: WP) {
       {p.documents.length === 0 ? <Empty title="Belum ada dokumen" body="Unggah denah, gambar kerja, foto kondisi, atau laporan. Berkas asli dipertahankan apa adanya." /> :
         <ul className="grid md:grid-cols-2 gap-3">{p.documents.map((d) => <li key={d.id} className="bg-card border border-card-border p-4 flex gap-3" data-testid={`card-doc-${d.id}`}>
           <div className="w-10 h-10 bg-muted grid place-items-center shrink-0">{d.mime === 'application/pdf' ? <FileText size={20} /> : <ImageIcon size={20} />}</div>
-          <div className="min-w-0 flex-1"><div className="font-medium truncate" title={d.name}>{d.name}</div><div className="text-xs text-muted-foreground font-mono">{d.mime.split('/')[1].toUpperCase()} / {fmtSize(d.size)} / {fmtDateTime(d.uploadedAt)}</div>
+          <div className="min-w-0 flex-1"><div className="font-medium truncate" title={d.name} data-i18n="off">{d.name}</div><div className="text-xs text-muted-foreground font-mono">{d.mime.split('/')[1].toUpperCase()} / {fmtSize(d.size)} / {fmtDateTime(d.uploadedAt)}</div>
             <div className="mt-1 flex gap-1 flex-wrap"><Badge tone={d.sourceState === 'existing' ? 'ink' : d.sourceState === 'proposed' ? 'accent' : 'muted'}>{SL[d.sourceState]}</Badge><Badge tone="warn">Belum diverifikasi</Badge></div>
              {d.availability === 'unavailable' && <p className="text-xs text-destructive mt-2">Tidak tersedia — hanya metadata cadangan. Pasok berkas asli.</p>}
              <div className="flex gap-1 mt-2 flex-wrap"><Btn sm disabled={d.availability === 'unavailable'} onClick={() => setPrev(d)} data-testid={`button-preview-${d.id}`}><Eye size={13} />Lihat</Btn><Btn sm disabled={d.availability === 'unavailable'} onClick={() => download(d)} data-testid={`button-download-${d.id}`}><Download size={13} />Unduh</Btn>{d.availability === 'unavailable' && <Btn sm disabled={busy} onClick={() => { setRestore(d); restoreRef.current?.click(); }} data-testid={`button-supply-${d.id}`}><Upload size={13} />Pasok berkas asli</Btn>}<Btn sm v="ghost" onClick={() => setDel(d)} aria-label="Hapus" data-testid={`button-delete-doc-${d.id}`}><Trash2 size={13} /></Btn></div></div></li>)}</ul>}
       {prev && <Preview d={prev} onClose={() => setPrev(null)} />}
-      {del && <Confirm title="Hapus dokumen?" label="Hapus" body={<>Berkas <b>{del.name}</b> dihapus dari IndexedDB. Ukuran yang tertaut ke dokumen ini ditandai sumber tidak diketahui. Revisi naik.</>} onClose={() => setDel(null)} onOk={() => remove(del)} />}
+      {del && <Confirm title="Hapus dokumen?" label="Hapus" body={<>Berkas <b><span data-i18n="off">{del.name}</span></b> dihapus dari IndexedDB. Ukuran yang tertaut ke dokumen ini ditandai sumber tidak diketahui. Revisi naik.</>} onClose={() => setDel(null)} onOk={() => remove(del)} />}
     </div>
   );
 }

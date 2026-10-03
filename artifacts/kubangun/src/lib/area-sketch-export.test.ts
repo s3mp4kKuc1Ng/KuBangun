@@ -32,7 +32,7 @@ test('export uses exact preview geometry including thin and extreme proportions'
 test('long names wrap without clipping or truncation and increase canvas height', () => {
   const short = areaSketchExport(room).svg;
   const long = areaSketchExport({ ...room, name: 'W'.repeat(140) }).svg;
-  const nameTexts = [...long.matchAll(/font-weight="bold">([^<]*)<\/text>/g)].map((m) => m[1]);
+  const nameTexts = [...long.matchAll(/font-weight="bold"[^>]*>([^<]*)<\/text>/g)].map((m) => m[1]);
   assert.equal(nameTexts.join(''), 'W'.repeat(140));
   assert.ok(nameTexts.every((s) => s.length <= 32));
   const height = (s: string) => Number(s.match(/height="(\d+)"/)?.[1]);

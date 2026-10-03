@@ -2,7 +2,7 @@ import type { Project } from './types';
 import { roomDifference, roomPairs, roomState } from './room-comparison';
 export type RState = 'ok' | 'unconfirmed' | 'missing' | 'unknown';
 export interface RItem { key: string; label: string; state: RState; note: string; tab: string }
-const unk = (s: string) => !s.trim() || /^tidak diketahui$/i.test(s.trim());
+const unk = (s: string) => !s.trim() || /^(tidak diketahui|unknown)$/i.test(s.trim());
 export function readiness(p: Project): RItem[] {
   const out: RItem[] = [];
   const num = (key: string, label: string, v: number | null, note: string) => out.push({ key, label, state: v == null ? 'missing' : 'ok', note: v == null ? 'Belum diisi. ' + note : 'Diisi manual. ' + note, tab: 'profil' });

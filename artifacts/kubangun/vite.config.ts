@@ -29,8 +29,20 @@ if (!basePath) {
 
 export default defineConfig({
   base: basePath,
+  // Local translation modules must remain live source modules, not cached deps.
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    exclude: ['@/lib/i18n/jsx-runtime', '@/lib/i18n/jsx-dev-runtime'],
+  },
   plugins: [
-    react(),
+    react({ jsxImportSource: '@/lib/i18n' }),
+    {
+      name: 'keep-local-i18n-source',
+      configResolved(config) {
+        // The React plugin adds its JSX runtime to include even when excluded.
+        config.optimizeDeps.include = config.optimizeDeps.include?.filter((id) => !id.startsWith('@/lib/i18n/'));
+      },
+    },
     tailwindcss(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== 'production' &&

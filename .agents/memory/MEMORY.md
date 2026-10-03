@@ -2,6 +2,7 @@
 - [Browser regression checks](browser-regression-checks.md) — assert native select option disabled attributes directly; the enabled matcher does not cover options.
 - [Backup preservation](backup-preservation.md) — unrelated restores must not materialize legacy labels; JSON document metadata is unavailable evidence until files are supplied.
 - [Construction planning](construction-planning.md) — coefficients and roof dimensions are explicit user inputs; execution and its inbox remain browser-local.
-- [JSX instrumentation](jsx-instrumentation.md) — infer generic JSX props; explicit type arguments can fail preview instrumentation despite passing TypeScript.
+- [JSX preview compatibility](jsx-instrumentation.md) — infer JSX generics; custom runtime optimization and provider cycles can break preview despite passing typechecks.
 - [Cross-tab storage coherence](cross-tab-storage-coherence.md) — a Web Lock alone does not ensure a fresh localStorage read; require a coherent shared version guard.
 - [Imported workspace installs](workspace-installs.md) — the package callback installs only a selected package; use the frozen lockfile to install the full imported workspace.
+- [Localization boundaries](localization-boundaries.md) — language changes presentation only; protect authored text, canonical option values, backups, and unsaved forms.

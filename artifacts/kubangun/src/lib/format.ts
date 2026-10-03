@@ -1,8 +1,9 @@
+import { getLocale } from './i18n/language';
 export const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
-export const fmtDate = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '-' : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); };
-export const fmtDateTime = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '-' : d.toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+export const fmtDate = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '-' : d.toLocaleDateString(getLocale(), { day: 'numeric', month: 'short', year: 'numeric' }); };
+export const fmtDateTime = (iso: string) => { const d = new Date(iso); return isNaN(+d) ? '-' : d.toLocaleString(getLocale(), { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); };
 export const fmtSize = (n: number) => n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
-export const fmtNum = (n: number | null | undefined, unit = '') => (n == null ? 'Belum diisi' : n.toLocaleString('id-ID') + (unit ? ' ' + unit : ''));
+export const fmtNum = (n: number | null | undefined, unit = '') => (n == null ? 'Belum diisi' : n.toLocaleString(getLocale()) + (unit ? ' ' + unit : ''));
 export const roomArea = (r: { length: number; width: number }) => Math.round(r.length * r.width * 100) / 100;
 export const modeLabel = (m: string) => (m === 'new' ? 'Bangun Baru' : 'Renovasi');
 export const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(' ');

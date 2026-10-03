@@ -1,3 +1,4 @@
+import { translate } from '@/lib/i18n/translate';
 import { useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { Search, Archive, ArchiveRestore, Trash2, ArrowUpRight } from 'lucide-react';
@@ -45,9 +46,9 @@ export function ProjectList({ limit }: { limit?: number }) {
                     {p.example && <Badge tone="warn">Contoh fiktif</Badge>}
                     {p.archived && <Badge>Arsip</Badge>}
                   </div>
-                  <Link href={`/projects/${p.id}`} className="font-display text-xl font-bold hover:underline inline-flex items-center gap-1" data-testid={`link-project-${p.id}`}>{p.name}<ArrowUpRight size={16} /></Link>
-                  <p className="text-sm text-muted-foreground">{p.city}, {p.province} / Revisi {p.revision} / Diperbarui {fmtDate(p.updatedAt)}</p>
-                  <p className="text-xs mt-2 text-muted-foreground"><span className="font-mono uppercase tracking-wide">Berikutnya:</span> {g[0] ? `${g[0].label} (${g[0].note.split('.')[0].toLowerCase()})` : 'Semua isian dasar terisi; belum berarti aman'}</p>
+                  <Link href={`/projects/${p.id}`} className="font-display text-xl font-bold hover:underline inline-flex items-center gap-1" data-testid={`link-project-${p.id}`} data-i18n="off">{p.name}<ArrowUpRight size={16} /></Link>
+                  <p className="text-sm text-muted-foreground"><span data-i18n="off">{p.city}</span>, <span data-i18n="off">{p.province}</span> / Revisi {p.revision} / Diperbarui {fmtDate(p.updatedAt)}</p>
+                  <p className="text-xs mt-2 text-muted-foreground"><span className="font-mono uppercase tracking-wide">Berikutnya:</span> {g[0] ? <>{g[0].label} ({translate(g[0].note).split('.')[0].toLowerCase()})</> : 'Semua isian dasar terisi; belum berarti aman'}</p>
                 </div>
                 <div className="p-4 md:w-48 flex md:flex-col justify-between gap-3 border-t md:border-t-0 md:border-l border-border no-print">
                   <div><div className="font-mono text-xs text-muted-foreground">Kelengkapan isian</div><div className="h-1.5 bg-muted mt-1"><div className="h-full bg-accent transition-all" style={{ width: pct + '%' }} /></div><div className="font-mono text-sm mt-1">{pct}%</div></div>
@@ -62,8 +63,8 @@ export function ProjectList({ limit }: { limit?: number }) {
         </ul>
       )}
       {limit && list.length > limit && <div className="mt-3"><Link href="/projects" className="text-sm underline">Lihat semua {list.length} proyek</Link></div>}
-      {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body={<>Proyek <b>{arc.name}</b> dipindah ke arsip. Data dan berkas tetap tersimpan dan dapat dipulihkan.</>} onClose={() => setArc(null)} onOk={async () => { if (await updateProject(arc.id, (x) => ({ ...x, archived: true }), false)) toast({ title: 'Proyek diarsipkan' }); }} />}
-      {del && <Confirm title="Hapus proyek permanen?" label="Hapus permanen" body={<>Proyek <b>{del.name}</b> beserta {del.documents.length} berkas di IndexedDB akan dihapus dari perangkat ini dan tidak dapat dikembalikan. Pertimbangkan mengekspor JSON terlebih dahulu.</>} onClose={() => setDel(null)} onOk={async () => { const e = await deleteProject(del.id); toast(e ? { title: 'Dihapus dengan catatan', description: e, variant: 'destructive' } : { title: 'Proyek dihapus' }); }} />}
+      {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body={<>Proyek <b data-i18n="off">{arc.name}</b> dipindah ke arsip. Data dan berkas tetap tersimpan dan dapat dipulihkan.</>} onClose={() => setArc(null)} onOk={async () => { if (await updateProject(arc.id, (x) => ({ ...x, archived: true }), false)) toast({ title: 'Proyek diarsipkan' }); }} />}
+      {del && <Confirm title="Hapus proyek permanen?" label="Hapus permanen" body={<>Proyek <b data-i18n="off">{del.name}</b> beserta {del.documents.length} berkas di IndexedDB akan dihapus dari perangkat ini dan tidak dapat dikembalikan. Pertimbangkan mengekspor JSON terlebih dahulu.</>} onClose={() => setDel(null)} onOk={async () => { const e = await deleteProject(del.id); toast(e ? { title: 'Dihapus dengan catatan', description: e, variant: 'destructive' } : { title: 'Proyek dihapus' }); }} />}
     </div>
   );
 }

@@ -47,7 +47,7 @@ export function ImportBackup() {
       <div className="space-y-4 text-sm">
         <p className="break-all">{fileName} — {backup.length} proyek, {duplicates} ID duplikat.</p>
         <ul className="max-h-60 overflow-y-auto divide-y divide-border" data-testid="list-import-preview">{backup.map((p) => <li key={p.id} className="py-2">
-          <b>{p.name}</b> {projects.some((x) => x.id === p.id) && <span className="text-destructive">— duplikat</span>}
+          <b data-i18n="off">{p.name}</b> {projects.some((x) => x.id === p.id) && <span className="text-destructive">— duplikat</span>}
           <p>Revisi {p.revision} · {p.rooms.length} ruang · {p.rooms.filter((r) => roomState(r) === 'unknown').length} belum berlabel · {p.rooms.filter((r) => r.existingRoomId).length} pasangan · {p.documents.length} dokumen hanya metadata</p>
           <p className="text-muted-foreground">{p.mode === 'renovation' ? 'Renovasi' : 'Bangunan baru'} · {p.archived ? 'Arsip' : 'Aktif'} · {p.status === 'draft' ? 'Draf' : 'Tinjauan diminta (simulasi, tidak terkirim)'}</p>
         </li>)}</ul>

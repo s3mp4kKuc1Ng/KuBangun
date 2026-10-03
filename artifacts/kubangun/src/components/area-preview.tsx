@@ -19,7 +19,7 @@ export function AreaPreview({ name, floor, length, width, testId, onDownload, re
         <div className="text-xs text-muted-foreground p-3 text-center border border-dashed border-border" role="status">Sketsa belum tersedia. {g.reason}</div>
       )}
       <figcaption className="text-xs mt-2 space-y-0.5">
-        {name?.trim() && <div className="font-medium break-words">{name}</div>}
+        {name?.trim() && <div className="font-medium break-words" data-i18n="off">{name}</div>}
         <div className="font-mono text-muted-foreground break-words">
           {fl != null && Number.isInteger(fl) && fl > 0 ? `Lantai ${fl}` : 'Lantai belum valid'}
           {g.valid && ` / Luas geometris ${numberLabel(g.length * g.width)} m²`}

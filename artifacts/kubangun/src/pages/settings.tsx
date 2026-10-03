@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { LanguageSwitch } from '@/components/language-switch';
 import { Download, RotateCcw } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { Btn, Confirm, Field, PageHead, inputCls } from '@/components/kit';
@@ -29,7 +30,11 @@ export default function SettingsPage() {
       <h2 className="font-display text-xl font-bold mb-1">Ekspor data</h2>
       <p className="text-sm text-muted-foreground mb-3">JSON berisi data proyek dan metadata berkas (bukan isi berkas).</p>
       <Btn className="mb-3" disabled={!projects.length} onClick={() => downloadText('kubangun-semua-proyek.json', JSON.stringify(projectsJson(projects), null, 2))} data-testid="button-export-all"><Download size={14} />Semua proyek</Btn>
-      <ul className="divide-y divide-border">{projects.map((p) => <li key={p.id} className="py-2 flex justify-between gap-2 items-center text-sm"><span className="truncate">{p.name}</span><Btn sm onClick={() => downloadText(`${p.id}.json`, JSON.stringify(projectJson(p), null, 2))} data-testid={`button-export-${p.id}`}>Ekspor</Btn></li>)}</ul>
+      <ul className="divide-y divide-border">{projects.map((p) => <li key={p.id} className="py-2 flex justify-between gap-2 items-center text-sm"><span className="truncate"><span data-i18n="off">{p.name}</span></span><Btn sm onClick={() => downloadText(`${p.id}.json`, JSON.stringify(projectJson(p), null, 2))} data-testid={`button-export-${p.id}`}>Ekspor</Btn></li>)}</ul>
+    </section>
+    <section className="bg-card border border-card-border p-5">
+      <h2 className="font-display text-xl font-bold mb-3">Bahasa</h2>
+      <div className="max-w-sm"><LanguageSwitch /></div>
     </section>
     <ImportBackup />
     <section className="bg-card border border-card-border p-5">

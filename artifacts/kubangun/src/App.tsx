@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { StoreProvider } from '@/lib/store';
 import { Shell } from '@/components/shell';
+import { useLanguage } from '@/lib/i18n/context';
 
 const NotFound = lazy(() => import('@/pages/not-found'));
 const Dashboard = lazy(() => import('@/pages/dashboard'));
@@ -27,7 +28,7 @@ function Router() {
               className="flex min-h-[45vh] items-center justify-center text-sm text-muted-foreground"
               role="status"
             >
-              Loading page…
+              Memuat halaman…
             </div>
           }
         >
@@ -52,6 +53,8 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function App() {
+  // Rerender date/number formatters without remounting pages or discarding drafts.
+  useLanguage();
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
