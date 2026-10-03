@@ -43,6 +43,7 @@ KuBangun helps Indonesian homeowners and professionals organize measurements and
 ## User preferences
 
 - The user will evaluate the prototype after it is built.
+- For 2D drawings, the user chose automatic dimension previews rather than an editable floor-plan tool. Show individual area sketches, not inferred room placement.
 
 ## Gotchas
 

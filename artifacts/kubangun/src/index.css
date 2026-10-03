@@ -445,4 +445,11 @@
   .print-area{border:0!important;box-shadow:none!important;padding:0!important}
   main{padding:0!important;margin:0!important}
   aside{display:none!important}
+  .area-preview-grid{display:block!important}
+  .area-preview{break-inside:avoid;page-break-inside:avoid;margin:0 0 4mm;background:#fff!important;color:#000!important}
+  .area-preview svg{max-width:80mm;width:100%;height:auto}
+  .area-preview svg rect{fill:none;stroke:#000}
+  .area-preview svg line{stroke:#000}
+  .area-preview svg text{fill:#000}
+  .area-preview figcaption,.area-preview figcaption div{color:#000!important}
 }

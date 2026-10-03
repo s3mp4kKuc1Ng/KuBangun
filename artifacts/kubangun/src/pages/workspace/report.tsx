@@ -1,4 +1,5 @@
 import { Printer, FileJson } from 'lucide-react';
+import { AreaPreview } from '@/components/area-preview';
 import { Btn } from '@/components/kit';
 import { downloadText, projectJson, slug } from '@/lib/export';
 import { fmtDate, fmtDateTime, fmtNum, fmtSize, modeLabel, roomArea } from '@/lib/format';
@@ -18,6 +19,7 @@ export function ReportView({ p }: { p: Project }) {
     <p className="text-xs text-muted-foreground mt-1">Seluruh angka adalah isian pengguna dan perkiraan.</p>
     <H n={2} t="Ruang" />
     {p.rooms.length === 0 ? <p>Belum ada ruang dicatat.</p> : <table className="w-full text-left"><thead><tr className="border-b border-border"><th>Ruang</th><th>Lt</th><th>P x L x T (m)</th><th>Luas geometris</th><th>Status</th></tr></thead><tbody>{p.rooms.map((r) => <tr key={r.id} className="border-b border-border/50"><td>{r.name}</td><td>{r.floor}</td><td>{r.length} x {r.width} x {r.height ?? 'tidak diketahui'}</td><td>{roomArea(r)} m2</td><td>{r.confirmed ? 'Dikonfirmasi pengguna' : 'Belum dikonfirmasi'}</td></tr>)}</tbody></table>}
+    {p.rooms.length > 0 && <div className="area-preview-grid grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 print:grid-cols-2">{p.rooms.map((r) => <AreaPreview key={r.id} name={r.name} floor={r.floor} length={r.length} width={r.width} testId={`report-preview-${r.id}`} />)}</div>}
     <H n={3} t="Komponen" />
     {p.components.length === 0 ? <p>Belum ada komponen dicatat.</p> : <ul className="list-disc pl-5">{p.components.map((c) => <li key={c.id}>{c.type}: <b>{c.name}</b> ({c.state === 'existing' ? 'eksisting' : 'usulan'}); dimensi: {c.dimensions || 'belum diisi'}; material: {c.material}; {c.confirmed ? 'dikonfirmasi pengguna' : 'belum dikonfirmasi'}.</li>)}</ul>}
     <H n={4} t="Bukti dan dokumen" />
