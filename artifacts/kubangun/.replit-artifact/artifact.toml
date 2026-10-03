@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "KuBangun"
+description = "An Indonesian residential construction and renovation assessment workflow prototype for homeowners and professionals, with building forms, drawings, condition records, and preliminary reports."
+version = "1.0.0"
+id = "artifacts/kubangun"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19209
+
+[services.development]
+run = "pnpm --filter @workspace/kubangun run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/kubangun", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/kubangun/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19209"
+BASE_PATH = "/"

@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ox5n6PH6RWVvfmjm2SrKn"
+uri = "file://KuBangun-Product-Plan.md"
+type = "text"
+title = "KuBangun — Updated Plan v1.1"
+description = "Updated plan confirming low-rise residential buildings as the initial scope for new construction and renovation."
+logical_id = "ac77010e-315f-450f-a259-709035d54e68"
+content_hash = "sha256:72b010c93b98bb7aaaabf5d77b0602c6d44a66a7687fb674289316dd728303e2"
+size = 12757
+mtime_ms = 1791004317827
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/conversation:a58e9898-0380-4538-b3c7-ea692d75445f/ac77010e-315f-450f-a259-709035d54e68/80a8634b-1452-400f-bf3a-300738709684"
+storage_version_token = "1791004323380612"
+content_type = "text/markdown"
+
+[[outputs]]
+id = "swxSdhy-6RHLYN3hW_x_j"
+uri = "file://KuBangun-Screen-Specification.md"
+type = "text"
+title = "KuBangun — Screen-by-Screen Specification"
+description = "15 screens with forms, measurement fields, construction and renovation workflows, validation rules, permissions, review states, and implementation order."
+logical_id = "11e6dbc0-da1a-4158-b026-e8a67ed3c057"
+content_hash = "sha256:aa7097072f1f386628a33890ab5fc941119c8ab66a633d2cfe612394a0b51477"
+size = 16498
+mtime_ms = 1791004486008
+storage_uri = "gcs://replit-rams-assets-pike/rams/assets/conversation:a58e9898-0380-4538-b3c7-ea692d75445f/11e6dbc0-da1a-4158-b026-e8a67ed3c057/609d970b-c77c-4cfa-b0ec-4705f0d9e912"
+storage_version_token = "1791004492853399"
+content_type = "text/markdown"

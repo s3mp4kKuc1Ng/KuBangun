@@ -1,44 +1,55 @@
-# [Project name]
+# KuBangun
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+KuBangun helps Indonesian homeowners and professionals organize measurements and evidence for low-rise residential construction and renovation.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- Start the managed workflow `artifacts/kubangun: web` for the current prototype.
+- `pnpm --filter @workspace/kubangun run typecheck` — check the frontend.
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- The current evaluation prototype does not require an API, database, authentication service, or external integrations.
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Current prototype: React + Vite, TypeScript, browser-local persistence.
+- Shared API/DB/codegen packages are scaffolded but not part of the prototype's persistence.
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/kubangun/` — working evaluation prototype.
+- `.local/conversation-workspace/files/KuBangun-Product-Plan.md` — approved product direction and phased scope.
+- `.local/conversation-workspace/files/KuBangun-Screen-Specification.md` — planned screen and form behavior.
+- `docs/prototype-evaluation.md` — evaluation scope and limits.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The user approved building a prototype to evaluate later, not releasing a validated engineering system. Browser-local storage keeps that first evaluation independent of service setup.
+- The full product plan includes homeowner/professional workflows and drawing extraction; this first prototype must distinguish preview workflows from real professional review, and leave extraction and engineering calculations unavailable.
+- No self-selected professional role can confer engineering approval authority.
+- Never infer structural adequacy from room dimensions, photographs, or documentation completeness.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Confirmed market: Indonesia.
+- Confirmed initial building scope: low-rise residential buildings.
+- Both project modes must remain available: Build from Scratch and Renovation.
+- Serve homeowners and professionals; offer manual entry and eventually verified drawing extraction.
+- Engineering eligibility limits and calculation methods require qualified Indonesian engineering input before implementation.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- The user will evaluate the prototype after it is built.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Browser-local projects and uploads are not shared across users, devices, browsers, or preview/published origins. Clearing site storage removes local data.
+- Prototype review requests must be labeled simulations, never presented as sent to a real professional.
+- Retain preliminary report limitations; never present a draft report as a safety certificate or permit.
+- If backend API contracts are added later, regenerate clients after every OpenAPI spec change.
 
 ## Pointers
 
