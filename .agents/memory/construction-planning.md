@@ -20,3 +20,9 @@ Deleting a room must also account for historical baseline references of work tha
 **Why:** Looking only at a work's current room allowed the former room to be deleted while its baseline still referenced it, making the project's own backup impossible to restore.
 
 **How to apply:** Check every baseline as well as the live work scope. Rebaselining does not remove older references; protect them during deletion and remap them during duplicate restores.
+
+Resolve cross-tab conflicts by preserving the latest saved history and offering draft export before reload, not by silently merging old execution snapshots. Reject writes when safe cross-tab locking is unavailable.
+
+**Why:** Local-only execution has no shared-account authority or remote conflict resolver. Preserving baseline/progress history is more important than allowing writes in an unsupported browser; a compare-then-write alone cannot protect simultaneous writers.
+
+**How to apply:** Keep the same data-safety guarantee for every project mutation, including inbox read status, restore, and deletion. Do not add an unlocked compatibility fallback or use engineering revision as the only freshness check.

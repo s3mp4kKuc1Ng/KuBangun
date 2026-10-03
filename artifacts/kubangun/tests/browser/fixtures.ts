@@ -41,7 +41,8 @@ export async function openRooms(page: Page) {
 
 export async function savedProject(page: Page): Promise<Project> {
   return page.evaluate(({ key, id }) => {
-    const project = (JSON.parse(localStorage.getItem(key) || '[]') as Project[])
+    const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+    const project = ((Array.isArray(parsed) ? parsed : parsed.projects) as Project[])
       .find((p) => p.id === id);
     if (!project) throw new Error('Isolated fixture is missing');
     return project;

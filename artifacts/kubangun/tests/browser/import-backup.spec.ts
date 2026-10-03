@@ -18,7 +18,10 @@ async function choose(page: Page, json: unknown) {
   });
 }
 async function stored(page: Page): Promise<Project[]> {
-  return page.evaluate((k) => JSON.parse(localStorage.getItem(k) || '[]'), key);
+  return page.evaluate((k) => {
+    const parsed = JSON.parse(localStorage.getItem(k) || '[]');
+    return Array.isArray(parsed) ? parsed : parsed.projects;
+  }, key);
 }
 
 test('preview and cancel are safe; confirmed single-project restore survives reload with unavailable evidence', async ({ page }) => {
@@ -73,12 +76,14 @@ test('all-project restore handles skip and copy without overwriting; copy preser
   await expect(page.getByTestId('select-import-duplicates')).toHaveValue('skip');
   await expect(page.getByTestId('button-confirm-import')).toHaveText('Pulihkan 1 proyek');
   await page.getByTestId('button-confirm-import').click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   expect(await savedProject(page)).toEqual(before);
   expect((await stored(page)).length).toBe(2);
   await choose(page, projectJson(backupProject()));
   await expect(page.getByTestId('button-confirm-import')).toBeDisabled();
   await page.getByTestId('select-import-duplicates').selectOption('copy');
   await page.getByTestId('button-confirm-import').click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   const all = await stored(page);
   const copied = all.find((p) => p.name === 'Restored backup (salinan)')!;
   expect(copied.id).not.toBe('imported');

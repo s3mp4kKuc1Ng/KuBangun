@@ -21,11 +21,11 @@ export function ProgressForm({ p, workId, onClose }: { p: Project; workId: strin
   const [use, setUse] = useState<Record<string, string>>(Object.fromEntries((last?.usage ?? []).map((u) => [u.materialId, String(u.quantity)])));
   const [err, setErr] = useState<string | null>(null);
   if (!bi) return <Modal title="Catat progres" onClose={onClose}><p className="text-sm">Pekerjaan ini belum masuk baseline.</p></Modal>;
-  const submit = () => {
+  const submit = async () => {
     const usage: { materialId: string; quantity: number }[] = [];
     for (const m of bi.materials) { const s = use[m.material.id] ?? ''; if (s.trim() === '') continue; const n = numOrNull(s); if (n === null) { setErr(`Penggunaan ${m.material.name}: "${s}" bukan angka valid.`); return; } usage.push({ materialId: m.material.id, quantity: n }); }
     const cq = numOrNull(done); if (cq === null) { setErr('Kuantitas selesai harus berupa angka.'); return; }
-    const r = save((x) => recordProgress(x, { workId, date, status, completedQuantity: cq, responsible: who.trim(), note, usage }));
+    const r = await save((x) => recordProgress(x, { workId, date, status, completedQuantity: cq, responsible: who.trim(), note, usage }));
     if (r) setErr(r); else onClose();
   };
   return <Modal wide title={`Catat progres — ${bi.work.name}`} onClose={onClose}><div className="space-y-3 text-sm">
@@ -102,7 +102,7 @@ export function ExecutionPanel({ p }: { p: Project }) {
 export function OwnerInbox({ p, goWork }: { p: Project; goWork: (workId?: string) => void }) {
   const save = useSave(p.id); const ns = getWorkPlan(p).notifications; const unread = ns.filter((n) => !n.readAt).length;
   const [err, setErr] = useState<string | null>(null);
-  const mark = (ids: string[]) => setErr(save((x) => { const pl = getWorkPlan(x); const t = new Date().toISOString(); return { ...x, workPlan: { ...pl, notifications: pl.notifications.map((n) => ids.includes(n.id) && !n.readAt ? { ...n, readAt: t } : n) } }; }, false));
+  const mark = async (ids: string[]) => setErr(await save((x) => { const pl = getWorkPlan(x); const t = new Date().toISOString(); return { ...x, workPlan: { ...pl, notifications: pl.notifications.map((n) => ids.includes(n.id) && !n.readAt ? { ...n, readAt: t } : n) } }; }, false));
   return <section className="space-y-3" data-testid="panel-owner-inbox">
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-display font-bold text-xl">Kotak masuk pemilik <Badge tone={unread ? 'accent' : 'muted'}>{unread} belum dibaca</Badge></h2>{unread > 0 && <Btn sm onClick={() => mark(ns.filter((n) => !n.readAt).map((n) => n.id))} data-testid="button-mark-all-read">Tandai semua dibaca</Btn>}</div>
     <p className="text-xs text-muted-foreground">Catatan dibuat lokal di perangkat ini saat pelaksanaan atau progres berubah. Tidak ada pengiriman ke pihak lain.</p>

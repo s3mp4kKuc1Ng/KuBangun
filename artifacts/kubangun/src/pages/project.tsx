@@ -31,7 +31,7 @@ export default function ProjectPage() {
   const unread = p.workPlan?.notifications.filter((n) => !n.readAt).length ?? 0;
   const tabs = [['profil', 'Profil'], ['ruang', 'Ruang & Komponen'], ['pekerjaan', 'Pekerjaan & Material'], ['notifikasi', `Notifikasi lokal (${unread})`], ['dokumen', 'Dokumen'], ...(reno ? [['observasi', 'Kondisi Eksisting'], ['perubahan', 'Rencana Perubahan']] : []), ['kesiapan', 'Kesiapan Data'], ['tinjauan', 'Tinjauan'], ['laporan', 'Laporan']];
   const setTab = (t: string) => { setTabState(t); history.replaceState(null, '', `?tab=${t}`); };
-  const props: WP = { p, goTab: setTab, up: (fn: (x: Project) => Project, bump = true) => { updateProject(p.id, fn, bump); } };
+  const props: WP = { p, goTab: setTab, up: (fn: (x: Project) => Project, bump = true) => updateProject(p.id, fn, bump) };
   const cur = tabs.some((t) => t[0] === tab) ? tab : 'profil';
   return (
     <div>
@@ -62,7 +62,7 @@ export default function ProjectPage() {
         {cur === 'tinjauan' && <Review {...props} />}
         {cur === 'laporan' && <div className="space-y-4"><div className="flex gap-2 flex-wrap no-print"><ReportActions p={p} /></div><ReportView p={p} /></div>}
       </div>
-      {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body="Proyek dipindah ke arsip dan dapat dipulihkan kapan saja." onClose={() => setArc(false)} onOk={() => { updateProject(p.id, (x) => ({ ...x, archived: true }), false); toast({ title: 'Proyek diarsipkan' }); nav('/projects'); }} />}
+      {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body="Proyek dipindah ke arsip dan dapat dipulihkan kapan saja." onClose={() => setArc(false)} onOk={async () => { if (await updateProject(p.id, (x) => ({ ...x, archived: true }), false)) { toast({ title: 'Proyek diarsipkan' }); nav('/projects'); } }} />}
       {del && <Confirm title="Hapus proyek permanen?" label="Hapus permanen" body={<><b>{p.name}</b> dan {p.documents.length} berkas di IndexedDB akan dihapus dari perangkat ini selamanya.</>} onClose={() => setDel(false)} onOk={async () => { const e = await deleteProject(p.id); toast(e ? { title: 'Dihapus dengan catatan', description: e, variant: 'destructive' } : { title: 'Proyek dihapus' }); nav('/projects'); }} />}
     </div>
   );

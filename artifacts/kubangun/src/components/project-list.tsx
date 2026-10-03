@@ -52,7 +52,7 @@ export function ProjectList({ limit }: { limit?: number }) {
                 <div className="p-4 md:w-48 flex md:flex-col justify-between gap-3 border-t md:border-t-0 md:border-l border-border no-print">
                   <div><div className="font-mono text-xs text-muted-foreground">Kelengkapan isian</div><div className="h-1.5 bg-muted mt-1"><div className="h-full bg-accent transition-all" style={{ width: pct + '%' }} /></div><div className="font-mono text-sm mt-1">{pct}%</div></div>
                   <div className="flex gap-1">
-                    <Btn sm v="ghost" aria-label="Arsipkan" data-testid={`button-archive-${p.id}`} onClick={() => p.archived ? (updateProject(p.id, (x) => ({ ...x, archived: false })), toast({ title: 'Proyek dipulihkan' })) : setArc(p)}>{p.archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}</Btn>
+                    <Btn sm v="ghost" aria-label="Arsipkan" data-testid={`button-archive-${p.id}`} onClick={async () => { if (!p.archived) setArc(p); else if (await updateProject(p.id, (x) => ({ ...x, archived: false }))) toast({ title: 'Proyek dipulihkan' }); }}>{p.archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}</Btn>
                     <Btn sm v="ghost" aria-label="Hapus" data-testid={`button-delete-${p.id}`} onClick={() => setDel(p)}><Trash2 size={15} /></Btn>
                   </div>
                 </div>
@@ -62,7 +62,7 @@ export function ProjectList({ limit }: { limit?: number }) {
         </ul>
       )}
       {limit && list.length > limit && <div className="mt-3"><Link href="/projects" className="text-sm underline">Lihat semua {list.length} proyek</Link></div>}
-      {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body={<>Proyek <b>{arc.name}</b> dipindah ke arsip. Data dan berkas tetap tersimpan dan dapat dipulihkan.</>} onClose={() => setArc(null)} onOk={() => { updateProject(arc.id, (x) => ({ ...x, archived: true }), false); toast({ title: 'Proyek diarsipkan' }); }} />}
+      {arc && <Confirm title="Arsipkan proyek?" label="Arsipkan" body={<>Proyek <b>{arc.name}</b> dipindah ke arsip. Data dan berkas tetap tersimpan dan dapat dipulihkan.</>} onClose={() => setArc(null)} onOk={async () => { if (await updateProject(arc.id, (x) => ({ ...x, archived: true }), false)) toast({ title: 'Proyek diarsipkan' }); }} />}
       {del && <Confirm title="Hapus proyek permanen?" label="Hapus permanen" body={<>Proyek <b>{del.name}</b> beserta {del.documents.length} berkas di IndexedDB akan dihapus dari perangkat ini dan tidak dapat dikembalikan. Pertimbangkan mengekspor JSON terlebih dahulu.</>} onClose={() => setDel(null)} onOk={async () => { const e = await deleteProject(del.id); toast(e ? { title: 'Dihapus dengan catatan', description: e, variant: 'destructive' } : { title: 'Proyek dihapus' }); }} />}
     </div>
   );

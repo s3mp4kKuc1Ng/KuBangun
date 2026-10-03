@@ -16,7 +16,7 @@ export default function NewProject() {
   const [floors, setFloors] = useState('');
   const [desc, setDesc] = useState('');
   const [err, setErr] = useState<Record<string, string>>({});
-  const submit = () => {
+  const submit = async () => {
     const e: Record<string, string> = {};
     if (!name.trim()) e.name = 'Nama proyek wajib diisi.';
     if (!province) e.province = 'Pilih provinsi.';
@@ -27,7 +27,7 @@ export default function NewProject() {
     if (Object.keys(e).length) return;
     const t = new Date().toISOString();
     const p: Project = { id: uid(), name: name.trim(), mode, province, city: city.trim(), floors: f, landArea: null, footprintArea: null, totalArea: null, structure: '', material: '', description: desc.trim(), revision: 1, createdAt: t, updatedAt: t, status: 'draft', archived: false, rooms: [], components: [], documents: [], observations: [], changes: [], reviewNotes: [] };
-    addProject(p);
+    if (!await addProject(p)) return;
     nav(`/projects/${p.id}`);
   };
   const opts = [

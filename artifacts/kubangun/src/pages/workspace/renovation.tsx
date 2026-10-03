@@ -49,7 +49,7 @@ export function Observations({ p, up }: WP) {
         <div className="flex gap-2 flex-wrap items-center mb-1"><Badge tone="accent">{o.category}</Badge><span className="font-mono text-xs text-muted-foreground">{fmtDate(o.date)}</span>{o.crackWidth != null && <Badge>Lebar retak {o.crackWidth} mm</Badge>}{o.photoDocumentId && <Badge tone="ok">Foto: {doc(o.photoDocumentId) ?? 'dihapus'}</Badge>}</div>
         <div className="font-medium">{o.location}</div><p className="text-sm text-muted-foreground">{o.description}</p>
         <div className="flex gap-1 mt-2"><Btn sm onClick={() => setM(o)}><Pencil size={13} />Ubah</Btn><Btn sm v="ghost" onClick={() => setDel(o)} aria-label="Hapus"><Trash2 size={13} /></Btn></div></li>)}</ul>}
-    {m && <ObsForm p={p} init={m === 'new' ? null : m} onClose={() => setM(null)} onSave={(o) => { up((x) => ({ ...x, observations: x.observations.some((y) => y.id === o.id) ? x.observations.map((y) => (y.id === o.id ? o : y)) : [...x.observations, o] })); setM(null); }} />}
+    {m && <ObsForm p={p} init={m === 'new' ? null : m} onClose={() => setM(null)} onSave={async (o) => { if (await up((x) => ({ ...x, observations: x.observations.some((y) => y.id === o.id) ? x.observations.map((y) => (y.id === o.id ? o : y)) : [...x.observations, o] }))) setM(null); }} />}
     {del && <Confirm title="Hapus observasi?" label="Hapus" body={<>Hapus observasi di <b>{del.location}</b>? Revisi naik.</>} onClose={() => setDel(null)} onOk={() => up((x) => ({ ...x, observations: x.observations.filter((o) => o.id !== del.id) }))} />}
   </div>;
 }
@@ -66,7 +66,7 @@ export function Changes({ p, up }: WP) {
         <p className="font-medium">{c.description}</p>
         <div className="grid sm:grid-cols-2 gap-px bg-border border border-border mt-2 text-sm"><div className="bg-card p-2"><div className="text-xs font-mono uppercase text-muted-foreground">Eksisting</div>{k ? `${k.name}: ${k.dimensions || 'dimensi belum diisi'}; ${k.material}` : 'Komponen belum ditautkan'}</div><div className="bg-card p-2"><div className="text-xs font-mono uppercase text-muted-foreground">Usulan</div>{c.dimensions || 'Dimensi belum diisi'}</div></div>
         <div className="flex gap-1 mt-2"><Btn sm onClick={() => setM(c)}><Pencil size={13} />Ubah</Btn><Btn sm v="ghost" onClick={() => setDel(c)} aria-label="Hapus"><Trash2 size={13} /></Btn></div></li>; })}</ul>}
-    {m && <ChgForm p={p} init={m === 'new' ? null : m} onClose={() => setM(null)} onSave={(c) => { up((x) => ({ ...x, changes: x.changes.some((y) => y.id === c.id) ? x.changes.map((y) => (y.id === c.id ? c : y)) : [...x.changes, c] })); setM(null); }} />}
+    {m && <ChgForm p={p} init={m === 'new' ? null : m} onClose={() => setM(null)} onSave={async (c) => { if (await up((x) => ({ ...x, changes: x.changes.some((y) => y.id === c.id) ? x.changes.map((y) => (y.id === c.id ? c : y)) : [...x.changes, c] }))) setM(null); }} />}
     {del && <Confirm title="Hapus perubahan usulan?" label="Hapus" body="Perubahan ini dihapus dan revisi naik." onClose={() => setDel(null)} onOk={() => up((x) => ({ ...x, changes: x.changes.filter((c) => c.id !== del.id) }))} />}
   </div>;
 }

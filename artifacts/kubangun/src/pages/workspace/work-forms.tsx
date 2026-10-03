@@ -7,8 +7,8 @@ import { UNITS, applyTemplate, blankMaterial, calculateMaterial, displayQuantity
 
 export function useSave(pid: string) {
   const { updateProject } = useStore();
-  return (fn: (p: Project) => Project, bump = true): string | null => {
-    try { return updateProject(pid, fn, bump) ? null : 'Penyimpanan ke perangkat gagal. Data di formulir tetap ada; periksa ruang penyimpanan lalu coba lagi.'; }
+  return async (fn: (p: Project) => Project, bump = true): Promise<string | null> => {
+    try { return await updateProject(pid, fn, bump) ? null : 'Penyimpanan ke perangkat gagal atau data berubah di tab lain. Data di formulir tetap ada; lihat peringatan penyimpanan.'; }
     catch (e) { return (e as Error).message; }
   };
 }
@@ -45,7 +45,7 @@ function draftCheck(m: Material): { errors: string[]; warnings: string[] } {
 export const roomStateLabel = (s?: string) => s === 'existing' ? 'Eksisting' : s === 'proposed' ? 'Usulan' : 'Belum diklasifikasi';
 const str = (n: number | null) => n === null ? '' : String(n);
 
-export function MaterialForm({ initial, ctx, lockUnit, onSave, onClose }: { initial: Material; lockUnit?: boolean; ctx?: { q: number; unit: QuantityUnit }; onSave: (m: Material) => string | null; onClose: () => void }) {
+export function MaterialForm({ initial, ctx, lockUnit, onSave, onClose }: { initial: Material; lockUnit?: boolean; ctx?: { q: number; unit: QuantityUnit }; onSave: (m: Material) => string | null | Promise<string | null>; onClose: () => void }) {
   const [m, setM] = useState({ ...initial });
   const [t, setT] = useState({ factor: str(initial.factor), waste: String(initial.waste), pkg: str(initial.packageSize), manual: str(initial.manualQuantity), ovr: str(initial.overrideQuantity), box: str(initial.boxContents ?? null) });
   const [err, setErr] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export function MaterialForm({ initial, ctx, lockUnit, onSave, onClose }: { init
   let preview: string; let warns: string[] = [];
   try { const mm = build(); if (!ctx) { const d = draftCheck(mm); warns = d.warnings; if (d.errors.length) throw new Error(d.errors.join(' ')); preview = 'Draf templat' + (d.warnings.length ? '' : ' lengkap') + '.'; } else { const c = calculateMaterial(ctx.q, ctx.unit, mm); preview = `Mentah ${displayQuantity(c.raw)} ${c.unit}; pengadaan ${displayQuantity(c.procurement)} ${c.unit}. Aturan: ${c.rule}`; } }
   catch (e) { preview = 'Belum valid: ' + (e as Error).message; }
-  const submit = () => { try { const mm = build(); if (ctx) calculateMaterial(ctx.q, ctx.unit, mm); else { const d = draftCheck(mm); if (d.errors.length) throw new Error(d.errors.join(' ')); } const r = onSave(mm); if (r) setErr(r); else onClose(); } catch (e) { setErr((e as Error).message); } };
+  const submit = async () => { try { const mm = build(); if (ctx) calculateMaterial(ctx.q, ctx.unit, mm); else { const d = draftCheck(mm); if (d.errors.length) throw new Error(d.errors.join(' ')); } const r = await onSave(mm); if (r) setErr(r); else onClose(); } catch (e) { setErr((e as Error).message); } };
   const rate = m.mode === 'rate';
   return <Modal wide title={initial.name ? 'Ubah material' : 'Tambah material'} onClose={onClose}><div className="space-y-3">
     <p className="text-xs text-muted-foreground">Koefisien adalah angka dari sumber Anda sendiri; KuBangun tidak menyediakan koefisien baku.</p>
@@ -91,7 +91,7 @@ export function MaterialList({ materials, onEdit, onDelete, onAdd, onReorder }: 
     <Btn sm onClick={onAdd} data-testid="button-add-material">Tambah material</Btn></div>;
 }
 
-export function WorkForm({ p, initial, isNew, onSave, onClose }: { p: Project; initial: WorkItem; isNew: boolean; onSave: (w: WorkItem) => string | null; onClose: () => void }) {
+export function WorkForm({ p, initial, isNew, onSave, onClose }: { p: Project; initial: WorkItem; isNew: boolean; onSave: (w: WorkItem) => string | null | Promise<string | null>; onClose: () => void }) {
   const plan = getWorkPlan(p);
   const [w, setW] = useState(initial);
   const [t, setT] = useState({ q: str(initial.quantity), l: str(initial.length), wd: str(initial.width) });
@@ -112,7 +112,7 @@ export function WorkForm({ p, initial, isNew, onSave, onClose }: { p: Project; i
   };
   let calc: string;
   try { const x = workQuantity(p, build()); calc = `${displayQuantity(x.quantity)} ${w.unit} — ${x.rule}`; } catch (e) { calc = 'Belum valid: ' + (e as Error).message; }
-  const submit = () => { try { const r = onSave(build()); if (r) setErr(r); else onClose(); } catch (e) { setErr((e as Error).message); } };
+  const submit = async () => { try { const r = await onSave(build()); if (r) setErr(r); else onClose(); } catch (e) { setErr((e as Error).message); } };
   const set = <K extends keyof WorkItem>(k: K, v: WorkItem[K]) => setW((x) => ({ ...x, [k]: v }));
   return <Modal wide title={isNew ? 'Tambah pekerjaan' : 'Ubah pekerjaan'} onClose={onClose}><div className="space-y-3">
     {isNew && plan.templates.length > 0 && <Field label="Mulai dari templat (salinan independen)"><select data-testid="select-template" className={inputCls} value="" onChange={(e) => { const tp = plan.templates.find((x) => x.id === e.target.value); if (tp) setW((x) => applyTemplate(x, tp)); }}><option value="">Pilih templat…</option>{plan.templates.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></Field>}
@@ -136,16 +136,16 @@ export function WorkForm({ p, initial, isNew, onSave, onClose }: { p: Project; i
   </div></Modal>;
 }
 
-export function ReasonDialog({ title, label, cta, body, onSubmit, onClose }: { title: string; label: string; cta: string; body?: ReactNode; onSubmit: (reason: string) => string | null; onClose: () => void }) {
+export function ReasonDialog({ title, label, cta, body, onSubmit, onClose }: { title: string; label: string; cta: string; body?: ReactNode; onSubmit: (reason: string) => string | null | Promise<string | null>; onClose: () => void }) {
   const [v, setV] = useState(''); const [err, setErr] = useState<string | null>(null);
   return <Modal title={title} onClose={onClose}><div className="space-y-3 text-sm">{body}<Field label={label}><textarea data-testid="input-reason" className={inputCls} rows={3} value={v} onChange={(e) => setV(e.target.value)} /></Field><ErrorBox msg={err} />
-    <div className="flex justify-end gap-2"><Btn onClick={onClose}>Batal</Btn><Btn v="primary" data-testid="button-submit-reason" onClick={() => { if (!v.trim()) { setErr('Alasan wajib diisi.'); return; } const r = onSubmit(v.trim()); if (r) setErr(r); else onClose(); }}>{cta}</Btn></div></div></Modal>;
+    <div className="flex justify-end gap-2"><Btn onClick={onClose}>Batal</Btn><Btn v="primary" data-testid="button-submit-reason" onClick={async () => { if (!v.trim()) { setErr('Alasan wajib diisi.'); return; } const r = await onSubmit(v.trim()); if (r) setErr(r); else onClose(); }}>{cta}</Btn></div></div></Modal>;
 }
 
-export function NameDialog({ title, initial, onSubmit, onClose }: { title: string; initial: string; onSubmit: (n: string) => string | null; onClose: () => void }) {
+export function NameDialog({ title, initial, onSubmit, onClose }: { title: string; initial: string; onSubmit: (n: string) => string | null | Promise<string | null>; onClose: () => void }) {
   const [v, setV] = useState(initial); const [err, setErr] = useState<string | null>(null);
   return <Modal title={title} onClose={onClose}><div className="space-y-3"><Field label="Nama"><input data-testid="input-name" className={inputCls} value={v} onChange={(e) => setV(e.target.value)} /></Field><ErrorBox msg={err} />
-    <div className="flex justify-end gap-2"><Btn onClick={onClose}>Batal</Btn><Btn v="primary" onClick={() => { if (!v.trim()) { setErr('Nama wajib diisi.'); return; } const r = onSubmit(v.trim()); if (r) setErr(r); else onClose(); }}>Simpan</Btn></div></div></Modal>;
+    <div className="flex justify-end gap-2"><Btn onClick={onClose}>Batal</Btn><Btn v="primary" onClick={async () => { if (!v.trim()) { setErr('Nama wajib diisi.'); return; } const r = await onSubmit(v.trim()); if (r) setErr(r); else onClose(); }}>Simpan</Btn></div></div></Modal>;
 }
 
 export function TemplateEditor({ p, onClose }: { p: Project; onClose: () => void }) {
@@ -158,7 +158,7 @@ export function TemplateEditor({ p, onClose }: { p: Project; onClose: () => void
   const upsert = (t: WorkTemplate) => save(planFn((pl) => ({ ...pl, templates: pl.templates.some((x) => x.id === t.id) ? pl.templates.map((x) => x.id === t.id ? t : x) : [...pl.templates, t] })), false);
   return <Modal wide title="Templat pekerjaan proyek" onClose={onClose}><div className="space-y-3 text-sm">
     <p className="text-xs text-muted-foreground">Templat tersimpan hanya di proyek ini. Menerapkan templat membuat salinan independen; mengubah templat tidak mengubah pekerjaan yang ada.</p>
-    {!draft && <div className="space-y-1">{plan.templates.map((t) => <div key={t.id} className="flex items-center gap-2 border border-border px-2 py-1.5 bg-card"><span className="flex-1">{t.name} <span className="text-muted-foreground">({t.materials.length} material)</span></span><Btn sm onClick={() => open(t)}>Ubah</Btn><Btn sm v="ghost" onClick={() => { const r = upsert({ ...structuredClone(t), id: uid(), name: t.name + ' (salinan)', materials: t.materials.map((m) => ({ ...m, id: uid() })) }); setErr(r); }}>Duplikat</Btn><Btn sm v="ghost" onClick={() => setErr(save(planFn((pl) => ({ ...pl, templates: pl.templates.filter((x) => x.id !== t.id) })), false))}>Hapus</Btn></div>)}
+    {!draft && <div className="space-y-1">{plan.templates.map((t) => <div key={t.id} className="flex items-center gap-2 border border-border px-2 py-1.5 bg-card"><span className="flex-1">{t.name} <span className="text-muted-foreground">({t.materials.length} material)</span></span><Btn sm onClick={() => open(t)}>Ubah</Btn><Btn sm v="ghost" onClick={async () => { const r = await upsert({ ...structuredClone(t), id: uid(), name: t.name + ' (salinan)', materials: t.materials.map((m) => ({ ...m, id: uid() })) }); setErr(r); }}>Duplikat</Btn><Btn sm v="ghost" onClick={async () => setErr(await save(planFn((pl) => ({ ...pl, templates: pl.templates.filter((x) => x.id !== t.id) })), false))}>Hapus</Btn></div>)}
       {!plan.templates.length && <p className="text-muted-foreground">Belum ada templat.</p>}
       <Btn sm onClick={() => open({ id: uid(), name: '', specification: '', prompts: '', materials: [] })} data-testid="button-new-template">Templat baru</Btn></div>}
     {draft && <div className="space-y-3">
@@ -167,7 +167,7 @@ export function TemplateEditor({ p, onClose }: { p: Project; onClose: () => void
       <Field label="Petunjuk pengisian (prompts)"><textarea className={inputCls} rows={3} value={draft.prompts} onChange={(e) => setDraft({ ...draft, prompts: e.target.value })} /></Field>
       <MaterialList materials={draft.materials} onReorder={(i, d) => setDraft({ ...draft, materials: moveAt(draft.materials, i, d) })} onAdd={() => setMat(blankMaterial())} onEdit={setMat} onDelete={(m) => setDraft({ ...draft, materials: draft.materials.filter((x) => x.id !== m.id) })} />
       <ErrorBox msg={err} />
-      <div className="flex justify-end gap-2"><Btn onClick={() => { setDraft(null); setSel(null); }}>Kembali</Btn><Btn v="primary" onClick={() => { if (!draft.name.trim()) { setErr('Nama templat wajib diisi.'); return; } const r = upsert({ ...draft, name: draft.name.trim() }); if (r) setErr(r); else { setDraft(null); setSel(null); setErr(null); } }}>Simpan templat</Btn></div>
+      <div className="flex justify-end gap-2"><Btn onClick={() => { setDraft(null); setSel(null); }}>Kembali</Btn><Btn v="primary" onClick={async () => { if (!draft.name.trim()) { setErr('Nama templat wajib diisi.'); return; } const r = await upsert({ ...draft, name: draft.name.trim() }); if (r) setErr(r); else { setDraft(null); setSel(null); setErr(null); } }}>Simpan templat</Btn></div>
       {mat && sel && <MaterialForm initial={mat} onClose={() => setMat(null)} onSave={(m) => { setDraft((d) => d && ({ ...d, materials: d.materials.some((x) => x.id === m.id) ? d.materials.map((x) => x.id === m.id ? m : x) : [...d.materials, m] })); return null; }} />}
     </div>}
     {!draft && <ErrorBox msg={err} />}

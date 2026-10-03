@@ -14,7 +14,7 @@ const NAV = [
 export function Shell({ children }: { children: ReactNode }) {
   const [loc] = useLocation();
   const [open, setOpen] = useState(false);
-  const { saveError, loadError, clearError, retrySave, settings } = useStore();
+  const { saveError, loadError, clearError, retrySave, settings, storageConflict, exportDraft, reloadLatest } = useStore();
   const active = (h: string) => (h === '/' ? loc === '/' : loc.startsWith(h));
   const nav = (
     <nav className="flex flex-col gap-1">
@@ -49,11 +49,21 @@ export function Shell({ children }: { children: ReactNode }) {
       </div>
       {open && <div className="fixed inset-0 z-40 md:hidden no-print"><div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} /><div className="absolute left-0 top-0 bottom-0 w-72 bg-sidebar text-sidebar-foreground rise overflow-y-auto"><button className="absolute right-3 top-3" onClick={() => setOpen(false)} aria-label="Tutup"><X /></button>{side}</div></div>}
       <main className="flex-1 min-w-0 p-4 md:p-8 max-w-[1200px]">
+        {storageConflict && <div role="alert" data-testid="banner-storage-conflict" className="storage-conflict-notice mb-5 z-[60] mx-auto max-w-3xl max-h-[42dvh] overflow-y-auto border-2 border-destructive bg-card shadow-xl p-4 text-sm no-print">
+          <b>Data proyek berubah di tab lain.</b>
+          <p className="mt-1">Penulisan salinan lama diblokir agar baseline, progres, dan notifikasi terbaru tetap aman. Data tab ini tidak digabung otomatis.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Ekspor menyertakan salinan tab ini dan perubahan terakhir yang ditolak saat mencoba menyimpan. Isian formulir yang belum dicoba disimpan serta isi berkas bukti tidak termasuk.</p>
+          <p className="mt-1 text-xs">Memuat ulang akan membuang draf dan isian formulir di tab ini. Ekspor terlebih dahulu bila diperlukan.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Btn sm onClick={exportDraft} data-testid="button-export-conflict-draft">Ekspor draf tab ini</Btn>
+            <Btn sm v="primary" onClick={reloadLatest} data-testid="button-reload-latest">Muat ulang data terbaru</Btn>
+          </div>
+        </div>}
         {(saveError || loadError) && (
           <div role="alert" className="mb-5 border-l-4 border-destructive bg-[hsl(8,60%,92%)] p-4 text-sm flex gap-3 items-start no-print" data-testid="banner-save-error">
             <AlertTriangle className="text-destructive shrink-0" size={18} />
             <div className="flex-1"><b>Masalah penyimpanan lokal.</b> {saveError || loadError}</div>
-            {saveError && <Btn sm onClick={retrySave} data-testid="button-retry-save">Coba simpan lagi</Btn>}
+            {saveError && !storageConflict && <Btn sm onClick={retrySave} data-testid="button-retry-save">Coba simpan lagi</Btn>}
             <button onClick={clearError} aria-label="Tutup"><X size={16} /></button>
           </div>
         )}

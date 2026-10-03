@@ -37,6 +37,6 @@ export default function SettingsPage() {
       <p className="text-sm text-muted-foreground mb-3">Pulihkan contoh fiktif yang terhapus. Proyek Anda tidak diubah.</p>
       <Btn onClick={() => setRs(true)} data-testid="button-restore-seeds"><RotateCcw size={14} />Pulihkan contoh</Btn>
     </section>
-    {rs && <Confirm title="Pulihkan contoh proyek?" label="Pulihkan" body="Contoh yang hilang akan ditambahkan kembali; contoh yang ada tidak ditimpa." onClose={() => setRs(false)} onOk={() => { resetSeeds(); toast({ title: 'Contoh dipulihkan' }); }} />}
+    {rs && <Confirm title="Pulihkan contoh proyek?" label="Pulihkan" body="Contoh yang hilang akan ditambahkan kembali; contoh yang ada tidak ditimpa." onClose={() => setRs(false)} onOk={async () => { if (await resetSeeds()) toast({ title: 'Contoh dipulihkan' }); }} />}
   </div>;
 }

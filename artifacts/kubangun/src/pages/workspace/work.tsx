@@ -24,10 +24,10 @@ function WorkCard({ p, w, siblings, onEdit, onAskDelete }: { p: Project; w: Work
   const [err, setErr] = useState<string | null>(null); const [open, setOpen] = useState(false);
   let q: number | null = null; let rule = ''; try { const x = workQuantity(p, w); q = x.quantity; rule = x.rule; } catch (e) { rule = (e as Error).message; }
   const idx = siblings.findIndex((s) => s.id === w.id);
-  const reorder = (d: number) => setErr(save(planFn((pl) => { const ids = move(siblings.map((s) => s.id), idx, d); let k = 0; return { ...pl, items: pl.items.map((x) => siblings.some((s) => s.id === x.id) ? pl.items.find((y) => y.id === ids[k++])! : x) }; })));
+  const reorder = async (d: number) => setErr(await save(planFn((pl) => { const ids = move(siblings.map((s) => s.id), idx, d); let k = 0; return { ...pl, items: pl.items.map((x) => siblings.some((s) => s.id === x.id) ? pl.items.find((y) => y.id === ids[k++])! : x) }; })));
   const putMat = (m: Material) => save(planFn((pl) => ({ ...pl, items: pl.items.map((x) => x.id !== w.id ? x : { ...x, materials: x.materials.some((y) => y.id === m.id) ? x.materials.map((y) => y.id === m.id ? m : y) : [...x.materials, m] }) })));
   const used = (m: Material) => plan.updates.some((u) => u.workId === w.id && u.usage.some((x) => x.materialId === m.id));
-  const asTemplate = () => setErr(save(planFn((pl) => ({ ...pl, templates: [...pl.templates, { id: uid(), name: w.name, specification: w.specification, prompts: w.notes, materials: w.materials.map((m) => ({ ...m, id: uid() })) }] })), false));
+  const asTemplate = async () => setErr(await save(planFn((pl) => ({ ...pl, templates: [...pl.templates, { id: uid(), name: w.name, specification: w.specification, prompts: w.notes, materials: w.materials.map((m) => ({ ...m, id: uid() })) }] })), false));
   return <div id={`work-${w.id}`} className="border border-border bg-card p-3 text-sm scroll-mt-4" data-testid={`card-work-${w.id}`}>
     <div className="flex flex-wrap items-start gap-2"><span className="font-mono text-xs bg-muted px-1.5 py-0.5">{workNumber(p, w)}</span><div className="flex-1 min-w-[10rem]"><b>{w.name}</b>{w.specification && <span className="text-muted-foreground"> — {w.specification}</span>}
       <p className="text-xs font-mono">{q !== null ? `${displayQuantity(q)} ${w.unit}` : 'Kuantitas belum valid'} <span className="text-muted-foreground">· {rule}</span></p>
@@ -37,11 +37,11 @@ function WorkCard({ p, w, siblings, onEdit, onAskDelete }: { p: Project; w: Work
     {open && <div className="mt-2 space-y-2">
       {w.materials.map((m, i) => { let line = ''; try { if (q === null) throw new Error('Kuantitas pekerjaan belum valid.'); const c = calculateMaterial(q, w.unit, m); line = `Mentah ${displayQuantity(c.raw)}; pengadaan ${displayQuantity(c.procurement)} ${m.unit}. ${c.rule}`; } catch (e) { line = 'Galat: ' + (e as Error).message; }
         return <p key={m.id} className="text-xs font-mono"><b>{workNumber(p, w)}.{materialLetter(i)} {m.name}</b> — {line}</p>; })}
-      <MaterialList materials={w.materials} onReorder={(i, d) => setErr(save(planFn((pl) => ({ ...pl, items: pl.items.map((x) => x.id === w.id ? { ...x, materials: moveAt(x.materials, i, d) } : x) }))))} onAdd={() => setMat(blankMaterial())} onEdit={setMat} onDelete={setDelMat} /></div>}
+      <MaterialList materials={w.materials} onReorder={async (i, d) => setErr(await save(planFn((pl) => ({ ...pl, items: pl.items.map((x) => x.id === w.id ? { ...x, materials: moveAt(x.materials, i, d) } : x) }))))} onAdd={() => setMat(blankMaterial())} onEdit={setMat} onDelete={setDelMat} /></div>}
     <ErrorBox msg={err} />
     {mat && <MaterialForm initial={mat} lockUnit={inBaseline(p, mat.id, true)} ctx={q !== null ? { q, unit: w.unit } : undefined} onClose={() => setMat(null)} onSave={putMat} />}
     {delMat && (used(delMat) ? <Modal title="Material tidak dapat dihapus" onClose={() => setDelMat(null)}><p className="text-sm mb-3">{delMat.name} sudah memiliki catatan penggunaan di riwayat progres. Menghapusnya akan merusak riwayat, jadi dihapus diblokir. Gunakan koreksi progres untuk mengubah penggunaan, atau hapus seluruh pekerjaan beserta riwayatnya.</p><div className="text-right"><Btn onClick={() => setDelMat(null)}>Mengerti</Btn></div></Modal>
-      : <Confirm title="Hapus material" body={<p>Hapus {delMat.name} dari {w.name}? {inBaseline(p, delMat.id, true) ? 'Material tetap tercatat sebagai cuplikan di baseline lama (berlabel riwayat) dan baseline ditandai kedaluwarsa.' : ''}</p>} label="Hapus" onClose={() => setDelMat(null)} onOk={() => setErr(save(planFn((pl) => ({ ...pl, items: pl.items.map((x) => x.id !== w.id ? x : { ...x, materials: x.materials.filter((y) => y.id !== delMat.id) }) }))))} />)}
+      : <Confirm title="Hapus material" body={<p>Hapus {delMat.name} dari {w.name}? {inBaseline(p, delMat.id, true) ? 'Material tetap tercatat sebagai cuplikan di baseline lama (berlabel riwayat) dan baseline ditandai kedaluwarsa.' : ''}</p>} label="Hapus" onClose={() => setDelMat(null)} onOk={async () => setErr(await save(planFn((pl) => ({ ...pl, items: pl.items.map((x) => x.id !== w.id ? x : { ...x, materials: x.materials.filter((y) => y.id !== delMat.id) }) }))))} />)}
   </div>;
 }
 
@@ -61,7 +61,7 @@ export function WorkPlanning({ p }: { p: Project }) {
   const filterIds = useMemo(() => plan.items.filter((w) => (!fFloor || w.groupId === fFloor) && (!fRoom || w.roomId === fRoom) && (!fWork || w.id === fWork)).map((w) => w.id), [plan, fFloor, fRoom, fWork]);
   const filtered = !!(fFloor || fRoom || fWork);
   const putWork = (w: WorkItem, isNew: boolean) => save(planFn((pl) => ({ ...pl, items: isNew ? [...pl.items, w] : pl.items.map((x) => x.id === w.id ? w : x) } as WorkPlan)));
-  const updG = (f: (pl: WorkPlan) => WorkPlan) => setErr(save(planFn((pl) => f(pl))));
+  const updG = async (f: (pl: WorkPlan) => WorkPlan) => setErr(await save(planFn((pl) => f(pl))));
   const delImpact = (w: WorkItem) => { const n = plan.updates.filter((u) => u.workId === w.id).length; return `${n} entri progres, entri baseline, dan pemberitahuan terkait akan ikut terhapus.`; };
   const rooftopItems = (id: string) => plan.items.filter((w) => w.groupId === id && !w.roomId);
   return <div className="space-y-6" data-testid="panel-work-planning">
@@ -96,7 +96,7 @@ export function WorkPlanning({ p }: { p: Project }) {
       <Schedule p={p} ids={filterIds} title={filtered ? 'Jadwal terfilter' : 'Semua pekerjaan'} /></section>
     <ExecutionPanel p={p} />
     {form && <WorkForm p={p} initial={form.w} isNew={form.isNew} onClose={() => setForm(null)} onSave={(w) => putWork(w, form.isNew)} />}
-    {delW && <Confirm title="Hapus pekerjaan" label="Hapus pekerjaan" onClose={() => setDelW(null)} onOk={() => setErr(save((x) => deleteWork(x, [delW.id])))} body={<div className="space-y-2"><p>Hapus <b>{delW.name}</b> beserta material-nya?</p><p className="text-destructive">{delImpact(delW)} Tindakan ini tidak dapat dibatalkan.</p></div>} />}
+    {delW && <Confirm title="Hapus pekerjaan" label="Hapus pekerjaan" onClose={() => setDelW(null)} onOk={async () => setErr(await save((x) => deleteWork(x, [delW.id])))} body={<div className="space-y-2"><p>Hapus <b>{delW.name}</b> beserta material-nya?</p><p className="text-destructive">{delImpact(delW)} Tindakan ini tidak dapat dibatalkan.</p></div>} />}
     {rename && <NameDialog title="Ubah nama grup" initial={plan.groups.find((g) => g.id === rename)?.name ?? ''} onClose={() => setRename(null)} onSubmit={(n) => save(planFn((pl) => ({ ...pl, groups: pl.groups.map((g) => g.id === rename ? { ...g, name: n } : g) })))} />}
     {tpl && <TemplateEditor p={p} onClose={() => setTpl(false)} />}
   </div>;

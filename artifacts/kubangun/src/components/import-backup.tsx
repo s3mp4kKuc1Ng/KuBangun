@@ -28,10 +28,10 @@ export function ImportBackup() {
     } catch (e) { setError((e as Error).message); }
     finally { setReading(false); if (ref.current) ref.current.value = ''; }
   };
-  const confirm = () => {
+  const confirm = async () => {
     if (!backup) return;
     try {
-      const result = importProjects(backup, policy);
+      const result = await importProjects(backup, policy);
       setBackup(null); setError('');
       toast({ title: `${result.added} proyek dipulihkan`, description: `${result.skipped} duplikat dilewati. Isi berkas tidak termasuk cadangan.` });
     } catch (e) { setError((e as Error).message); }

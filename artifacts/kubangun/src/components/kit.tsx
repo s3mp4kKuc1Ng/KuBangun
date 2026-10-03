@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode, type ButtonHTMLAttributes } from 'react';
 import { X, Inbox } from 'lucide-react';
 import { cx } from '@/lib/format';
+import { useStore } from '@/lib/store';
 
 export const inputCls = 'w-full bg-card border border-input px-3 py-2 text-sm rounded-sm focus:outline-none focus:ring-2 focus:ring-ring/60 focus:border-accent placeholder:text-muted-foreground/70';
 type BP = ButtonHTMLAttributes<HTMLButtonElement> & { v?: 'primary' | 'accent' | 'ghost' | 'danger' | 'outline'; sm?: boolean };
@@ -16,10 +17,11 @@ export function Badge({ children, tone = 'muted' }: { children: ReactNode; tone?
   return <span className={cx('inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-sm font-mono uppercase tracking-wide', m)}>{children}</span>;
 }
 export function Modal({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const { storageConflict } = useStore();
   useEffect(() => { const h = (e: KeyboardEvent) => e.key === 'Escape' && onClose(); window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h); }, [onClose]);
   return <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-label={title}>
     <div className="fixed inset-0 bg-[hsl(215,45%,10%)]/60" onClick={onClose} />
-    <div className={cx('relative rise bg-card border border-border shadow-2xl mt-10 w-full', wide ? 'max-w-2xl' : 'max-w-md')}>
+    <div className={cx('relative rise bg-card border border-border shadow-2xl w-full', storageConflict ? 'mt-[45dvh]' : 'mt-10', wide ? 'max-w-2xl' : 'max-w-md')}>
       <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/60"><h3 className="font-display font-bold text-lg">{title}</h3><button onClick={onClose} aria-label="Tutup" className="p-1 hover:bg-muted"><X size={18} /></button></div>
       <div className="p-5">{children}</div></div></div>;
 }

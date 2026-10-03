@@ -10,7 +10,7 @@ export function Profile({ p, up }: WP) {
   const [f, setF] = useState({ name: p.name, province: p.province, city: p.city, floors: s(p.floors), land: s(p.landArea), foot: s(p.footprintArea), total: s(p.totalArea), structure: p.structure, material: p.material, description: p.description });
   const [err, setErr] = useState<string[]>([]);
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
-  const save = () => {
+  const save = async () => {
     const e: string[] = [];
     const chk = (v: string, l: string, int = false) => { const n = numOrNull(v); if (v.trim() && (n == null || n <= 0 || (int && !Number.isInteger(n)))) e.push(`${l} harus angka positif${int ? ' bulat' : ''}.`); return n; };
     const floors = chk(f.floors, 'Jumlah lantai', true), land = chk(f.land, 'Luas lahan'), foot = chk(f.foot, 'Luas telapak'), total = chk(f.total, 'Luas total');
@@ -19,7 +19,7 @@ export function Profile({ p, up }: WP) {
     if (total != null && foot != null && floors != null && total > foot * floors * 1.01) e.push('Peringatan data: luas total melebihi telapak x jumlah lantai.');
     setErr(e);
     if (e.some((x) => !x.startsWith('Peringatan'))) return;
-    up((x) => ({ ...x, name: f.name.trim(), province: f.province, city: f.city.trim(), floors, landArea: land, footprintArea: foot, totalArea: total, structure: f.structure.trim(), material: f.material.trim(), description: f.description.trim() }));
+    if (!await up((x) => ({ ...x, name: f.name.trim(), province: f.province, city: f.city.trim(), floors, landArea: land, footprintArea: foot, totalArea: total, structure: f.structure.trim(), material: f.material.trim(), description: f.description.trim() }))) return;
     toast({ title: 'Profil disimpan', description: 'Revisi dinaikkan; permintaan tinjauan (simulasi) direset.' });
   };
   return (

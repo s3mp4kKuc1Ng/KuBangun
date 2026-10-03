@@ -439,6 +439,13 @@
 .rise{animation:rise .35s ease both}
 @keyframes pulse2{50%{opacity:.5}}
 .skel{background:hsl(var(--muted));animation:pulse2 1.2s infinite}
+/* Keep navigation unobstructed normally; recovery remains above open forms. */
+body:has([role="dialog"]) .storage-conflict-notice {
+  position: fixed;
+  top: .5rem;
+  left: .5rem;
+  right: .5rem;
+}
 .print-area { min-width: 0; overflow-wrap: anywhere; }
 .print-area table { width: 100%; table-layout: fixed; }
 .print-area th, .print-area td, .print-area dd { min-width: 0; overflow-wrap: anywhere; }

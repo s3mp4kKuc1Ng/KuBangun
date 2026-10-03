@@ -41,7 +41,10 @@ export function Documents({ p, up }: WP) {
       const id = uid();
       try { await putBlob(id, f); } catch (e) { errs.push(`${f.name}: gagal menyimpan ke IndexedDB. ${(e as Error).message}`); continue; }
       const meta: DocMeta = { id, name: f.name, mime: f.type, size: f.size, sourceState: state, uploadedAt: new Date().toISOString() };
-      up((x) => ({ ...x, documents: [...x.documents, meta] }));
+      if (!await up((x) => ({ ...x, documents: [...x.documents, meta] }))) {
+        await delBlob(id);
+        errs.push(`${f.name}: metadata gagal disimpan. Periksa peringatan penyimpanan.`);
+      }
     }
     setErr(errs); setBusy(false); if (ref.current) ref.current.value = '';
   };
@@ -58,15 +61,17 @@ export function Documents({ p, up }: WP) {
       if (f.name !== restore.name || f.type !== restore.mime || f.size !== restore.size)
         throw new Error('Nama, tipe, dan ukuran harus sama dengan metadata cadangan. Pilih berkas asli; isi tidak dapat diverifikasi otomatis.');
       await putBlob(restore.id, f);
-      try { markDocumentAvailable(p.id, restore.id); }
+      try { await markDocumentAvailable(p.id, restore.id); }
       catch (e) { await delBlob(restore.id); throw e; }
       setRestore(null);
     } catch (e) { setErr([`Pemulihan berkas gagal: ${(e as Error).message}`]); }
     finally { setBusy(false); if (restoreRef.current) restoreRef.current.value = ''; }
   };
   const remove = async (d: DocMeta) => {
-    try { await delBlob(d.id); } catch (e) { setErr([`Gagal menghapus byte ${d.name} dari IndexedDB: ${(e as Error).message}. Metadata tidak dihapus agar tidak ada berkas yatim.`]); return; }
-    up((x) => ({ ...x, documents: x.documents.filter((y) => y.id !== d.id), rooms: x.rooms.map((r) => (r.documentId === d.id ? { ...r, documentId: undefined, source: 'tidak-diketahui' as const } : r)), components: x.components.map((c) => (c.documentId === d.id ? { ...c, documentId: undefined, source: 'tidak-diketahui' as const } : c)), observations: x.observations.map((o) => (o.photoDocumentId === d.id ? { ...o, photoDocumentId: undefined } : o)) }));
+    if (!await up((x) => ({ ...x, documents: x.documents.filter((y) => y.id !== d.id), rooms: x.rooms.map((r) => (r.documentId === d.id ? { ...r, documentId: undefined, source: 'tidak-diketahui' as const } : r)), components: x.components.map((c) => (c.documentId === d.id ? { ...c, documentId: undefined, source: 'tidak-diketahui' as const } : c)), observations: x.observations.map((o) => (o.photoDocumentId === d.id ? { ...o, photoDocumentId: undefined } : o)) }))) {
+      setErr(['Dokumen tidak dihapus karena penyimpanan gagal. Berkas bukti tetap dipertahankan.']); return;
+    }
+    try { await delBlob(d.id); } catch (e) { setErr([`Metadata dihapus, tetapi byte ${d.name} gagal dihapus dari IndexedDB: ${(e as Error).message}.`]); }
   };
   const SL = { existing: 'Eksisting', proposed: 'Usulan', unknown: 'Asal tidak diketahui' };
   return (
