@@ -1,5 +1,12 @@
 export const PREVIEW_VIEW = { w: 360, h: 240, left: 16, top: 34, right: 48, bottom: 18 };
 
+export const areaNumberLabel = (n: number) => n.toLocaleString('id-ID', {
+  useGrouping: false,
+  maximumSignificantDigits: 10,
+  notation: n < 0.001 || n >= 10000000 ? 'scientific' : 'standard',
+});
+export const areaMeterLabel = (n: number) => areaNumberLabel(n) + ' m';
+
 export type AreaGeometry =
   | { valid: false; reason: string }
   | { valid: true; length: number; width: number; viewW: number; viewH: number; x: number; y: number; w: number; h: number; mPerUnit: number };

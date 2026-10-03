@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { AreaPreview } from '@/components/area-preview';
+import { downloadAreaSketch } from '@/lib/area-sketch-export';
 import { Badge, Btn, Confirm, Empty, Field, Modal, inputCls } from '@/components/kit';
 import { COMPONENT_TYPES, numOrNull, roomArea, uid, fmtNum } from '@/lib/format';
 import type { Component, Room } from '@/lib/types';
@@ -66,7 +67,7 @@ export function Rooms({ p, up }: WP) {
           <div className="overflow-x-auto border border-border bg-card"><table className="w-full text-sm"><thead className="bg-muted text-left text-xs uppercase tracking-wider font-mono"><tr><th className="p-2">Ruang</th><th className="p-2">Lt</th><th className="p-2">P x L x T (m)</th><th className="p-2">Luas</th><th className="p-2">Sumber</th><th className="p-2">Status</th><th /></tr></thead><tbody>
             {p.rooms.map((r) => <tr key={r.id} className="border-t border-border" data-testid={`row-room-${r.id}`}><td className="p-2 font-medium">{r.name}</td><td className="p-2">{r.floor}</td><td className="p-2 font-mono">{r.length} x {r.width} x {r.height ?? '?'}</td><td className="p-2 font-mono">{roomArea(r)} m2</td><td className="p-2 text-xs">{SRC_LABEL[r.source]}{r.documentId && <div className="text-muted-foreground">{docName(r.documentId) ?? 'dokumen dihapus'}</div>}</td><td className="p-2"><Badge tone={r.confirmed ? 'ok' : 'warn'}>{r.confirmed ? 'Dikonfirmasi pengguna' : 'Belum dikonfirmasi'}</Badge></td><td className="p-2 whitespace-nowrap"><Btn sm v="ghost" aria-label="Ubah" onClick={() => setRoom(r)}><Pencil size={14} /></Btn><Btn sm v="ghost" aria-label="Hapus" onClick={() => setDel({ k: 'r', id: r.id, name: r.name })}><Trash2 size={14} /></Btn></td></tr>)}
           </tbody></table></div>}
-        {p.rooms.length > 0 && <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3" data-testid="room-previews">{p.rooms.map((r) => <AreaPreview key={r.id} name={r.name} floor={r.floor} length={r.length} width={r.width} testId={`preview-room-${r.id}`} />)}</div>}
+        {p.rooms.length > 0 && <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3" data-testid="room-previews">{p.rooms.map((r) => <AreaPreview key={r.id} name={r.name} floor={r.floor} length={r.length} width={r.width} testId={`preview-room-${r.id}`} onDownload={() => downloadAreaSketch(r)} />)}</div>}
       </section>
       <section>
         <div className="flex justify-between items-center mb-3"><h3 className="font-display text-xl font-bold">Komponen ({p.components.length})</h3><Btn v="primary" sm onClick={() => setComp('new')} data-testid="button-add-component"><Plus size={14} />Tambah komponen</Btn></div>
