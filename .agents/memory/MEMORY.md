@@ -1,2 +1,3 @@
 - [Renovation comparisons](renovation-comparisons.md) — classify and pair measurements explicitly; legacy rooms remain unclassified and missing counterparts are not zero.
 - [Browser regression checks](browser-regression-checks.md) — assert native select option disabled attributes directly; the enabled matcher does not cover options.
+- [Backup preservation](backup-preservation.md) — unrelated restores must not materialize legacy labels; JSON document metadata is unavailable evidence until files are supplied.

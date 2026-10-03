@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Project, Settings } from './types';
 import { seedProjects } from './seed';
 import { delBlob } from './idb';
-import { roomState } from './room-comparison';
+import { prepareImport, type DuplicatePolicy } from './import';
 
 const PK = 'kubangun.projects.v1';
 const SK = 'kubangun.settings.v1';
@@ -10,6 +10,8 @@ interface Ctx {
   projects: Project[]; settings: Settings; saveError: string | null; loadError: string | null;
   clearError: () => void; retrySave: () => void;
   addProject: (p: Project) => boolean;
+  importProjects: (projects: Project[], policy: DuplicatePolicy) => { added: number; skipped: number };
+  markDocumentAvailable: (projectId: string, documentId: string) => void;
   updateProject: (id: string, fn: (p: Project) => Project, bump?: boolean) => boolean;
   deleteProject: (id: string) => Promise<string | null>;
   setSettings: (s: Settings) => boolean;
@@ -26,8 +28,11 @@ function load(): { projects: Project[]; settings: Settings; err: string | null }
     if (raw === null) return { projects: seedProjects(), settings, err: null };
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) throw new Error('Format data tidak dikenali');
-    // Preserve all old dimensions and evidence; no mode-based state inference.
-    return { projects: parsed.map((p: Project) => ({ ...p, rooms: p.rooms.map((r) => ({ ...r, state: roomState(r) })) })), settings, err: null };
+    if (!parsed.every((p) => p && Array.isArray(p.rooms) && p.rooms.every((r: unknown) => r && typeof r === 'object')))
+      throw new Error('Format ruang tidak dikenali');
+    // Missing legacy states are interpreted as unknown by readers, not written
+    // onto records merely because another project is saved or imported.
+    return { projects: parsed, settings, err: null };
   } catch (e) {
     return { projects: seedProjects(), settings: dflt, err: 'Data lokal tidak dapat dibaca (' + (e as Error).message + '). Contoh proyek dimuat; data lama tidak ditimpa sampai Anda menyimpan perubahan.' };
   }
@@ -48,12 +53,33 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => { if (!init.current.err && localStorage.getItem(PK) === null) persist(projects); }, []); // eslint-disable-line
 
   const commit = (list: Project[]) => { ref.current = list; setProjects(list); return persist(list); };
+  const commitRestore = (list: Project[]) => {
+    try { localStorage.setItem(PK, JSON.stringify(list)); }
+    catch { throw new Error('Pemulihan gagal disimpan ke perangkat. Tidak ada proyek diubah; periksa ruang penyimpanan dan coba lagi.'); }
+    ref.current = list; setProjects(list); setSaveError(null);
+  };
 
   const value = useMemo<Ctx>(() => ({
     projects, settings, saveError, loadError,
     clearError: () => { setSaveError(null); setLoadError(null); },
     retrySave: () => { persist(ref.current); },
     addProject: (p) => commit([p, ...ref.current]),
+    importProjects: (incoming, policy) => {
+      if (init.current.err) throw new Error('Data lokal gagal dibaca. Pulihkan atau amankan data lokal lama sebelum mengimpor.');
+      const result = prepareImport(ref.current, incoming, policy);
+      // Atomic restore: failed storage writes must not change the visible state.
+      commitRestore(result.projects);
+      return { added: result.added, skipped: result.skipped };
+    },
+    markDocumentAvailable: (projectId, documentId) => {
+      if (!ref.current.some((p) => p.id === projectId && p.documents.some((d) => d.id === documentId && d.availability === 'unavailable')))
+        throw new Error('Metadata dokumen tidak tersedia untuk dipulihkan.');
+      commitRestore(ref.current.map((p) => p.id !== projectId ? p : {
+        ...p, documents: p.documents.map((d) => d.id === documentId ? { ...d, availability: 'available' } : d),
+        revision: p.revision + 1, updatedAt: new Date().toISOString(), status: 'draft',
+        reviewRequestedAt: undefined, reviewRequestedRevision: undefined,
+      }));
+    },
     updateProject: (id, fn, bump = true) => commit(ref.current.map((p) => {
       if (p.id !== id) return p;
       const n = fn(p);

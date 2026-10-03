@@ -5,7 +5,7 @@ export type SourceState = 'manual' | 'dokumen' | 'tidak-diketahui';
 export type RoomState = 'existing' | 'proposed' | 'unknown';
 export interface Room { id: string; name: string; floor: number; length: number; width: number; height: number | null; source: SourceState; documentId?: string; confirmed: boolean; state?: RoomState; existingRoomId?: string }
 export interface Component { id: string; type: string; name: string; dimensions: string; material: string; state: 'existing' | 'proposed'; source: SourceState; documentId?: string; confirmed: boolean }
-export interface DocMeta { id: string; name: string; mime: string; size: number; sourceState: 'existing' | 'proposed' | 'unknown'; uploadedAt: string }
+export interface DocMeta { id: string; name: string; mime: string; size: number; sourceState: 'existing' | 'proposed' | 'unknown'; uploadedAt: string; availability?: 'available' | 'unavailable' }
 export interface Observation { id: string; location: string; category: string; description: string; date: string; crackWidth?: number; photoDocumentId?: string }
 export interface Change { id: string; type: string; description: string; componentId?: string; dimensions: string }
 export interface ReviewNote { id: string; text: string; createdAt: string; revision: number }

@@ -16,7 +16,8 @@ export function readiness(p: Project): RItem[] {
   out.push({ key: 'components', label: 'Komponen struktur/arsitektur', state: p.components.length === 0 ? 'missing' : p.components.some((c) => !c.confirmed) ? 'unconfirmed' : 'ok', note: p.components.length === 0 ? 'Belum ada komponen dicatat.' : `${p.components.filter((c) => !c.confirmed).length} dari ${p.components.length} komponen belum dikonfirmasi pengguna.`, tab: 'ruang' });
   const unkMat = p.components.filter((c) => unk(c.material)).length;
   if (p.components.length) out.push({ key: 'compmat', label: 'Material komponen', state: unkMat ? 'unknown' : 'ok', note: unkMat ? `${unkMat} komponen bermaterial tidak diketahui.` : 'Semua komponen memiliki deskripsi material.', tab: 'ruang' });
-  out.push({ key: 'docs', label: 'Gambar / dokumen', state: p.documents.length === 0 ? 'missing' : 'ok', note: p.documents.length === 0 ? 'Belum ada berkas diunggah. Gambar rencana tidak membuktikan kondisi terbangun.' : `${p.documents.length} berkas tersimpan lokal. Ekstraksi otomatis dinonaktifkan.`, tab: 'dokumen' });
+  const unavailableDocs = p.documents.filter((d) => d.availability === 'unavailable').length;
+  out.push({ key: 'docs', label: 'Gambar / dokumen', state: p.documents.length === 0 || unavailableDocs > 0 ? 'missing' : 'ok', note: p.documents.length === 0 ? 'Belum ada berkas diunggah. Gambar rencana tidak membuktikan kondisi terbangun.' : unavailableDocs ? `${unavailableDocs} dari ${p.documents.length} dokumen hanya metadata; isi berkas belum tersedia. Pasok berkas asli di tab Dokumen.` : `${p.documents.length} berkas tersimpan lokal. Ekstraksi otomatis dinonaktifkan.`, tab: 'dokumen' });
   if (p.mode === 'renovation') {
     const unknownRooms = p.rooms.filter((r) => roomState(r) === 'unknown').length;
     const incompletePairs = roomPairs(p.rooms).filter((pair) => !roomDifference(pair.existing, pair.proposed)).length;
