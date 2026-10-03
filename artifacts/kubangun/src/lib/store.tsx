@@ -48,11 +48,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback((list: Project[]) => {
     try { localStorage.setItem(PK, JSON.stringify(list)); setSaveError(null); return true; }
-    catch (e) { setSaveError('Gagal menyimpan ke localStorage: ' + (e as Error).message + '. Perubahan hanya ada di memori dan hilang saat halaman dimuat ulang.'); return false; }
+    catch (e) { setSaveError('Gagal menyimpan ke localStorage: ' + (e as Error).message + '. Perubahan tidak disimpan; data dan notifikasi sebelumnya tetap dipertahankan. Periksa ruang penyimpanan dan coba lagi.'); return false; }
   }, []);
   useEffect(() => { if (!init.current.err && localStorage.getItem(PK) === null) persist(projects); }, []); // eslint-disable-line
 
-  const commit = (list: Project[]) => { ref.current = list; setProjects(list); return persist(list); };
+  const commit = (list: Project[]) => {
+    if (!persist(list)) return false;
+    ref.current = list; setProjects(list); return true;
+  };
   const commitRestore = (list: Project[]) => {
     try { localStorage.setItem(PK, JSON.stringify(list)); }
     catch { throw new Error('Pemulihan gagal disimpan ke perangkat. Tidak ada proyek diubah; periksa ruang penyimpanan dan coba lagi.'); }
@@ -80,17 +83,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         reviewRequestedAt: undefined, reviewRequestedRevision: undefined,
       }));
     },
-    updateProject: (id, fn, bump = true) => commit(ref.current.map((p) => {
-      if (p.id !== id) return p;
-      const n = fn(p);
-      const t = new Date().toISOString();
-      return bump ? { ...n, revision: p.revision + 1, updatedAt: t, status: 'draft', reviewRequestedAt: undefined, reviewRequestedRevision: undefined } : { ...n, updatedAt: t };
-    })),
+    updateProject: (id, fn, bump = true) => {
+      let changed = false;
+      const list = ref.current.map((p) => {
+        if (p.id !== id) return p;
+        const n = fn(p);
+        if (JSON.stringify(n) === JSON.stringify(p)) return p;
+        changed = true;
+        const t = new Date().toISOString();
+        return bump ? { ...n, revision: p.revision + 1, updatedAt: t, status: 'draft' as const, reviewRequestedAt: undefined, reviewRequestedRevision: undefined } : { ...n, updatedAt: t };
+      });
+      return changed ? commit(list) : true;
+    },
     deleteProject: async (id) => {
       const p = ref.current.find((x) => x.id === id);
+      if (!commit(ref.current.filter((x) => x.id !== id))) return 'Proyek tidak dihapus karena penyimpanan gagal. Berkas bukti tetap dipertahankan.';
       let err: string | null = null;
       if (p) for (const d of p.documents) { try { await delBlob(d.id); } catch (e) { err = 'Sebagian berkas lokal gagal dihapus dari IndexedDB: ' + (e as Error).message; } }
-      commit(ref.current.filter((x) => x.id !== id));
       return err;
     },
     setSettings: (s) => { setSettingsState(s); try { localStorage.setItem(SK, JSON.stringify(s)); return true; } catch (e) { setSaveError('Gagal menyimpan pengaturan: ' + (e as Error).message); return false; } },

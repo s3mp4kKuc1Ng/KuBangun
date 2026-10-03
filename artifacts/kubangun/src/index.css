@@ -439,6 +439,9 @@
 .rise{animation:rise .35s ease both}
 @keyframes pulse2{50%{opacity:.5}}
 .skel{background:hsl(var(--muted));animation:pulse2 1.2s infinite}
+.print-area { min-width: 0; overflow-wrap: anywhere; }
+.print-area table { width: 100%; table-layout: fixed; }
+.print-area th, .print-area td, .print-area dd { min-width: 0; overflow-wrap: anywhere; }
 @media print{
   .no-print{display:none!important}
   body{background:#fff!important}

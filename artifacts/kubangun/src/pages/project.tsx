@@ -14,6 +14,8 @@ import { Review } from './workspace/review';
 import { ReportView, ReportActions } from './workspace/report';
 import type { Project } from '@/lib/types';
 import type { WP } from './workspace/common';
+import { WorkPlanning } from './workspace/work';
+import { OwnerInbox } from './workspace/execution';
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,7 +28,8 @@ export default function ProjectPage() {
   const p = projects.find((x) => x.id === id);
   if (!p) return <Empty title="Proyek tidak ditemukan" body="Proyek ini mungkin sudah dihapus atau data lokal di peramban ini telah dibersihkan." action={<Link href="/projects" className="underline text-sm">Kembali ke daftar proyek</Link>} />;
   const reno = p.mode === 'renovation';
-  const tabs = [['profil', 'Profil'], ['ruang', 'Ruang & Komponen'], ['dokumen', 'Dokumen'], ...(reno ? [['observasi', 'Kondisi Eksisting'], ['perubahan', 'Rencana Perubahan']] : []), ['kesiapan', 'Kesiapan Data'], ['tinjauan', 'Tinjauan'], ['laporan', 'Laporan']];
+  const unread = p.workPlan?.notifications.filter((n) => !n.readAt).length ?? 0;
+  const tabs = [['profil', 'Profil'], ['ruang', 'Ruang & Komponen'], ['pekerjaan', 'Pekerjaan & Material'], ['notifikasi', `Notifikasi lokal (${unread})`], ['dokumen', 'Dokumen'], ...(reno ? [['observasi', 'Kondisi Eksisting'], ['perubahan', 'Rencana Perubahan']] : []), ['kesiapan', 'Kesiapan Data'], ['tinjauan', 'Tinjauan'], ['laporan', 'Laporan']];
   const setTab = (t: string) => { setTabState(t); history.replaceState(null, '', `?tab=${t}`); };
   const props: WP = { p, goTab: setTab, up: (fn: (x: Project) => Project, bump = true) => { updateProject(p.id, fn, bump); } };
   const cur = tabs.some((t) => t[0] === tab) ? tab : 'profil';
@@ -50,6 +53,8 @@ export default function ProjectPage() {
       <div key={cur} className="rise">
         {cur === 'profil' && <Profile {...props} />}
         {cur === 'ruang' && <Rooms {...props} />}
+        {cur === 'pekerjaan' && <WorkPlanning p={p} />}
+        {cur === 'notifikasi' && <OwnerInbox p={p} goWork={(workId?: string) => { setTabState('pekerjaan'); history.replaceState(null, '', `?tab=pekerjaan${workId ? `&focus=${encodeURIComponent(workId)}` : ''}`); }} />}
         {cur === 'dokumen' && <Documents {...props} />}
         {cur === 'observasi' && <Observations {...props} />}
         {cur === 'perubahan' && <Changes {...props} />}

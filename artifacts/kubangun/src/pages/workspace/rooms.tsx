@@ -9,6 +9,7 @@ import { Badge, Btn, Confirm, Empty, Field, Modal, inputCls } from '@/components
 import { COMPONENT_TYPES, numOrNull, roomArea, uid, fmtNum } from '@/lib/format';
 import type { Component, Room, RoomState } from '@/lib/types';
 import { SRC_LABEL, type WP } from './common';
+import { deleteRoomAndWork, historicalRoomDependents, syncRoomWork } from '@/lib/work-plan';
 
 const note = 'Dikonfirmasi pengguna hanya berarti Anda memeriksa bahwa isian sesuai sumbernya; ini bukan verifikasi profesional dan bukan penilaian kecukupan struktur.';
 
@@ -80,6 +81,7 @@ export function Rooms({ p, up }: WP) {
   const [del, setDel] = useState<{ k: 'r' | 'c'; id: string; name: string } | null>(null);
   const reno = p.mode === 'renovation';
   const docName = (id?: string) => p.documents.find((d) => d.id === id)?.name;
+  const historicalDependents = del?.k === 'r' ? historicalRoomDependents(p, del.id) : [];
   return (
     <div className="space-y-8">
       <section>
@@ -102,9 +104,13 @@ export function Rooms({ p, up }: WP) {
       </section>
       {reno ? <div className="text-xs text-muted-foreground space-y-0.5" data-testid="room-state-totals">{roomStateSummary(p.rooms).map((x) => <p key={x.state}>{ROOM_STATE_LABEL[x.state]}: {x.count} ruang, {x.area === null ? (x.count ? 'luas belum lengkap/valid' : '-') : fmtNum(Math.round(x.area * 100) / 100, 'm2')} (jumlah geometris per keadaan, tidak digabung).</p>)}</div> :
       <p className="text-xs text-muted-foreground">Total luas ruang tercatat: {fmtNum(Math.round(p.rooms.reduce((s, r) => s + roomArea(r), 0) * 100) / 100, 'm2')} (jumlah geometris, bukan luas terverifikasi).</p>}
-      {room && <RoomForm p={p} init={room === 'new' ? null : room} onClose={() => setRoom(null)} onSave={(r) => { up((x) => { const rs = x.rooms.some((y) => y.id === r.id) ? x.rooms.map((y) => (y.id === r.id ? r : y)) : [...x.rooms, r]; return { ...x, rooms: fixLinks(rs) }; }); setRoom(null); }} />}
+      {room && <RoomForm p={p} init={room === 'new' ? null : room} onClose={() => setRoom(null)} onSave={(r) => { up((x) => { const rs = x.rooms.some((y) => y.id === r.id) ? x.rooms.map((y) => (y.id === r.id ? r : y)) : [...x.rooms, r]; return syncRoomWork({ ...x, rooms: fixLinks(rs) }); }); setRoom(null); }} />}
       {comp && <CompForm p={p} init={comp === 'new' ? null : comp} onClose={() => setComp(null)} onSave={(c) => { up((x) => ({ ...x, components: x.components.some((y) => y.id === c.id) ? x.components.map((y) => (y.id === c.id ? c : y)) : [...x.components, c] })); setComp(null); }} />}
-      {del && <Confirm title="Hapus catatan?" label="Hapus" body={<>Hapus <b>{del.name}</b>? Revisi proyek akan naik.</>} onClose={() => setDel(null)} onOk={() => up((x) => del.k === 'r' ? { ...x, rooms: fixLinks(x.rooms.filter((r) => r.id !== del.id)) } : { ...x, components: x.components.filter((c) => c.id !== del.id), changes: x.changes.map((ch) => (ch.componentId === del.id ? { ...ch, componentId: undefined } : ch)) })} />}
+      {del && historicalDependents.length > 0 && <Modal title="Ruang masih dirujuk riwayat pekerjaan" onClose={() => setDel(null)}><div className="text-sm space-y-3" data-testid="warning-historical-room"><p><b>{del.name}</b> tidak dapat dihapus karena baseline lama pekerjaan yang telah dipindahkan masih mengacu ruang ini:</p><ul className="list-disc pl-5">{historicalDependents.map((w) => <li key={w.id}>{w.name}</li>)}</ul><p>Pertahankan ruang agar riwayat dan cadangan tetap dapat dipulihkan. Jika riwayat tersebut memang tidak diperlukan, ekspor cadangan lalu hapus pekerjaan terkait beserta riwayatnya melalui konfirmasi di Pekerjaan &amp; Material terlebih dahulu. Memindahkan kembali pekerjaan saja tidak menghapus baseline lama.</p><div className="text-right"><Btn onClick={() => setDel(null)}>Pertahankan ruang</Btn></div></div></Modal>}
+      {del && historicalDependents.length === 0 && <Confirm title="Hapus catatan?" label="Hapus" body={<>Hapus <b>{del.name}</b>? Revisi proyek akan naik.{del.k === 'r' && (p.workPlan?.items.some((w) => w.roomId === del.id)) && <p className="mt-2">Semua pekerjaan terkait ruang ini, material, snapshot baseline, riwayat progres/penggunaan, dan notifikasi pekerjaannya akan dihapus permanen. Template tetap tersedia. Ekspor cadangan jika ingin menyimpan riwayat.</p>}</>} onClose={() => setDel(null)} onOk={() => up((x) => {
+        if (del.k === 'c') return { ...x, components: x.components.filter((c) => c.id !== del.id), changes: x.changes.map((ch) => (ch.componentId === del.id ? { ...ch, componentId: undefined } : ch)) };
+        return deleteRoomAndWork(x, del.id);
+      })} />}
     </div>
   );
 }

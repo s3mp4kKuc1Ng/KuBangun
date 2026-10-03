@@ -23,6 +23,11 @@ export default function Dashboard() {
         {stats.map((s) => <div key={s.l} className="bg-card p-4"><div className="font-display text-4xl font-extrabold">{s.n}</div><div className="text-xs font-mono uppercase tracking-wide text-muted-foreground">{s.l}</div></div>)}
       </div>
       <div className="flex gap-3 border border-border bg-card p-4 mb-6 text-sm rise" data-testid="notice-limits"><ShieldAlert className="shrink-0 text-accent" /><p><b>Prototipe penataan bukti.</b> KuBangun belum menghitung kekuatan struktur, tidak menerbitkan persetujuan, dan tidak ada insinyur terverifikasi di dalamnya. Semua data di sini milik peramban Anda.</p></div>
+      <section className="border border-border bg-card p-4 mb-6" aria-label="Kotak notifikasi pemilik">
+        <h2 className="font-display font-bold">Notifikasi pemilik — lokal di peramban ({projects.reduce((sum, p) => sum + (p.workPlan?.notifications.filter((n) => !n.readAt).length ?? 0), 0)} belum dibaca)</h2>
+        <p className="text-xs text-muted-foreground mb-2">Tidak dikirim ke orang lain; tidak ada email, WhatsApp, push, atau proses latar belakang.</p>
+        {projects.some((p) => p.workPlan?.notifications.length) ? <div className="flex flex-wrap gap-3">{projects.filter((p) => p.workPlan?.notifications.length).map((p) => <Link className="text-sm underline" key={p.id} href={`/projects/${p.id}?tab=notifikasi`}>{p.name}: {p.workPlan!.notifications.filter((n) => !n.readAt).length} belum dibaca</Link>)}</div> : <p className="text-sm">Belum ada notifikasi pelaksanaan.</p>}
+      </section>
       <h2 className="font-display text-xl font-bold mb-3">Proyek Anda</h2>
       <ProjectList limit={6} />
     </div>

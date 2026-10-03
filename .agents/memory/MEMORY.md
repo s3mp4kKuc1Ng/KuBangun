@@ -1,3 +1,5 @@
 - [Renovation comparisons](renovation-comparisons.md) — classify and pair measurements explicitly; legacy rooms remain unclassified and missing counterparts are not zero.
 - [Browser regression checks](browser-regression-checks.md) — assert native select option disabled attributes directly; the enabled matcher does not cover options.
 - [Backup preservation](backup-preservation.md) — unrelated restores must not materialize legacy labels; JSON document metadata is unavailable evidence until files are supplied.
+- [Construction planning](construction-planning.md) — coefficients and roof dimensions are explicit user inputs; execution and its inbox remain browser-local.
+- [JSX instrumentation](jsx-instrumentation.md) — infer generic JSX props; explicit type arguments can fail preview instrumentation despite passing TypeScript.

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Project } from './types';
+import { workPlanSchema, validateWorkLinks, remapWorkPlan } from './work-plan-schema';
 
 export const MAX_BACKUP_BYTES = 10 * 1024 * 1024;
 const id = z.string().min(1).max(200).refine((s) => s.trim() === s && s.length > 0, 'ID tidak valid');
@@ -38,6 +39,7 @@ const project = z.object({
   changes: z.array(z.object({ id, type: text, description: text, componentId: id.optional(), dimensions: text })),
   reviewNotes: z.array(z.object({ id, text, createdAt: date, revision })),
   reviewRequestedAt: date.optional(), reviewRequestedRevision: revision.optional(),
+  workPlan: workPlanSchema.optional(),
 });
 const envelope = z.discriminatedUnion('format', [
   z.object({ format: z.literal('kubangun-project-v1'), exportedAt: date, project }),
@@ -48,6 +50,7 @@ function unique(ids: string[], label: string) {
   if (new Set(ids).size !== ids.length) throw new Error(`${label}: ID duplikat dalam cadangan.`);
 }
 function validateLinks(p: Project) {
+  validateWorkLinks(p);
   for (const key of ['rooms', 'components', 'documents', 'observations', 'changes', 'reviewNotes'] as const)
     unique(p[key].map((x) => x.id), `${p.name} / ${key}`);
   const docs = new Set(p.documents.map((d) => d.id));
@@ -95,9 +98,16 @@ export interface ImportResult { projects: Project[]; added: number; skipped: num
 // Revalidate at the persistence boundary, not only when displaying a preview.
 export function prepareImport(current: Project[], incoming: Project[], policy: DuplicatePolicy, newId: () => string = () => crypto.randomUUID()): ImportResult {
   const checked = parseBackup(JSON.stringify({ format: 'kubangun-all-v1', exportedAt: new Date().toISOString(), projects: incoming }));
-  const used = new Set(current.flatMap((p) => [p.id, ...p.rooms.map((r) => r.id), ...p.components.map((c) => c.id), ...p.documents.map((d) => d.id), ...p.observations.map((o) => o.id), ...p.changes.map((c) => c.id), ...p.reviewNotes.map((n) => n.id)]));
+  const workIds = (p: Project) => p.workPlan ? [
+    ...p.workPlan.groups.map((g) => g.id), ...p.workPlan.items.flatMap((w) => [w.id, ...w.materials.map((m) => m.id)]),
+    ...p.workPlan.templates.flatMap((t) => [t.id, ...t.materials.map((m) => m.id)]),
+    ...p.workPlan.baselines.flatMap((b) => [b.id, ...b.items.flatMap((i) => [i.work.id, ...i.materials.map((m) => m.material.id)])]),
+    ...p.workPlan.updates.map((u) => u.id), ...p.workPlan.notifications.map((n) => n.id),
+  ] : [];
+  const used = new Set(current.flatMap((p) => [p.id, ...p.rooms.map((r) => r.id), ...p.components.map((c) => c.id), ...p.documents.map((d) => d.id), ...p.observations.map((o) => o.id), ...p.changes.map((c) => c.id), ...p.reviewNotes.map((n) => n.id), ...workIds(p)]));
   checked.forEach((p) => {
     used.add(p.id);
+    workIds(p).forEach((id) => used.add(id));
     for (const list of [p.rooms, p.components, p.documents, p.observations, p.changes, p.reviewNotes])
       list.forEach((x) => used.add(x.id));
   });
@@ -125,6 +135,7 @@ export function prepareImport(current: Project[], incoming: Project[], policy: D
       observations: p.observations.map((o) => ({ ...o, id: duplicate ? fresh() : o.id, photoDocumentId: o.photoDocumentId ? docIds.get(o.photoDocumentId) : undefined })),
       changes: p.changes.map((c) => ({ ...c, id: duplicate ? fresh() : c.id, componentId: c.componentId ? componentIds.get(c.componentId) : undefined })),
       reviewNotes: p.reviewNotes.map((n) => ({ ...n, id: duplicate ? fresh() : n.id })),
+      ...(p.workPlan ? { workPlan: remapWorkPlan(p.workPlan, roomIds, duplicate, fresh) } : {}),
     });
   }
   return { projects: [...added, ...current], added: added.length, skipped };

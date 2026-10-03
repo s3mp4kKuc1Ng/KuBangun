@@ -7,6 +7,7 @@ import { fmtDate, fmtDateTime, fmtNum, fmtSize, modeLabel, roomArea } from '@/li
 import { gaps, RLABEL } from '@/lib/readiness';
 import type { Project } from '@/lib/types';
 import { ROOM_STATE_LABEL, roomState } from '@/lib/room-comparison';
+import { WorkReport } from '@/components/work-report';
 
 export function ReportView({ p }: { p: Project }) {
   const g = gaps(p);
@@ -32,6 +33,7 @@ export function ReportView({ p }: { p: Project }) {
     {g.length === 0 ? <p>Semua isian dasar terisi, namun belum diverifikasi profesional.</p> : <ul className="list-disc pl-5">{g.map((i) => <li key={i.key}><b>{i.label}</b> [{RLABEL[i.state]}]: {i.note}</li>)}</ul>}
     <H n={8} t="Catatan lokal" />
     {p.reviewNotes.length === 0 ? <p>Tidak ada.</p> : <ul className="list-disc pl-5">{p.reviewNotes.map((n) => <li key={n.id}>{n.text} (revisi {n.revision})</li>)}</ul>}
+    <WorkReport p={p} />
     <H n={9} t="Batasan" />
     <ul className="list-disc pl-5 space-y-1"><li>Dokumen ini merangkum data yang dimasukkan pengguna di peramban; tidak ada perhitungan rekayasa dilakukan.</li><li>Dikonfirmasi pengguna bukan verifikasi profesional. Tidak ada insinyur atau peninjau yang terlibat.</li><li>Laporan tidak menyatakan keselamatan, kelayakan hunian, atau kepatuhan regulasi, dan bukan pengganti izin atau penilaian ahli.</li><li>Status simulasi tinjauan tidak dikirim ke pihak mana pun.</li></ul>
   </article>;
